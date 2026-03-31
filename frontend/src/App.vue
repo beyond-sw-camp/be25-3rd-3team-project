@@ -1,30 +1,21 @@
-<script setup>
-import { RouterView } from 'vue-router'
-import AppHeader from './components/AppHeader.vue'
-</script>
-
 <template>
-  <div class="app">
-    <AppHeader />
-    <main class="main">
-      <RouterView />
-    </main>
-  </div>
+
+  <router-view/>
+
 </template>
 
-<style scoped>
-.app {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+<script>
+
+import CardPage from "./views/CardPage.vue"
+import OrderManagementPage from "./views/OrderManagementPage.vue"
+
+export default{
+
+  components:{
+    CardPage,
+    OrderManagementPage
+  }
+
 }
 
-.main {
-  flex: 1;
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 3rem;
-  box-sizing: border-box;
-}
-</style>
+</script>
