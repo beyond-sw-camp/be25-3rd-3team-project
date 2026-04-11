@@ -1,4 +1,6 @@
 <script setup>
+import BaseSelect from '../../components/common/BaseSelect.vue'
+
 const summary = [
   { label: '자동 결제 실패', value: '15', sub: '최근 7일 자동결제 실패 건수' },
   { label: '한도 초과 감지', value: '12', sub: '하루 결제 한도 초과 시도' },
@@ -29,13 +31,13 @@ const rows = [
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-neutral-900">결제 실패 내역</h1>
     <div
       class="mt-4 flex flex-wrap items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
     >
       <span class="mt-0.5 text-lg">⚠</span>
       <p>
-        결제수단 차단 감지 시 해당 결제수단 확인 후 차단 해제 또는 다른 결제수단으로 결제를 시도해 주세요.
+        결제수단 차단 감지 시 해당 결제수단 확인 후 차단 해제 또는 다른 결제수단으로 결제를 시도해
+        주세요.
       </p>
     </div>
 
@@ -52,16 +54,16 @@ const rows = [
     </div>
 
     <div class="mt-6 flex flex-wrap gap-2 border-b border-neutral-200 pb-4">
-      <select class="rounded-md border border-neutral-300 px-3 py-2 text-sm">
+      <BaseSelect>
         <option>마켓</option>
         <option>전체</option>
-      </select>
-      <select class="rounded-md border border-neutral-300 px-3 py-2 text-sm">
+      </BaseSelect>
+      <BaseSelect>
         <option>최근 7일</option>
-      </select>
-      <select class="rounded-md border border-neutral-300 px-3 py-2 text-sm">
+      </BaseSelect>
+      <BaseSelect>
         <option>실패 유형</option>
-      </select>
+      </BaseSelect>
       <input
         type="search"
         placeholder="로그인 식별자(ID) 검색"

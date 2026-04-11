@@ -1,30 +1,29 @@
 <script setup>
-import OrderListBlock from '../../components/dashboard/OrderListBlock.vue'
+import BaseStatCard from '../../components/common/BaseStatCard.vue'
+import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
+import OrderListBlock from '../../components/sidebar/OrderListBlock.vue'
+
+const stats = [
+  { label: '오늘 수집한 상품', value: '—', tone: 'muted' },
+  { label: '자동 주문 실패', value: 50, tone: 'danger' },
+  { label: '자동 주문 처리 중', value: 6, tone: 'primary' },
+  { label: '재시도 대기 중', value: 6, tone: 'warning' },
+]
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-neutral-900">자동 주문 현황</h1>
-    <section class="mt-6">
-      <h2 class="text-sm font-semibold text-neutral-700">자동 주문 건수</h2>
+    <section>
+      <BaseSectionTitle>자동 주문 건수</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
       <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
-          <p class="text-sm text-neutral-500">오늘 수집한 상품</p>
-          <p class="mt-2 text-2xl font-bold text-neutral-400">—</p>
-        </div>
-        <div class="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
-          <p class="text-sm text-neutral-500">자동 주문 실패</p>
-          <p class="mt-2 text-2xl font-bold text-red-600">50</p>
-        </div>
-        <div class="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
-          <p class="text-sm text-neutral-500">자동 주문 처리 중</p>
-          <p class="mt-2 text-2xl font-bold text-point">6</p>
-        </div>
-        <div class="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
-          <p class="text-sm text-neutral-500">재시도 대기 중</p>
-          <p class="mt-2 text-2xl font-bold text-amber-600">6</p>
-        </div>
+        <BaseStatCard
+          v-for="stat in stats"
+          :key="stat.label"
+          :label="stat.label"
+          :value="stat.value"
+          :tone="stat.tone"
+        />
       </div>
     </section>
     <OrderListBlock />

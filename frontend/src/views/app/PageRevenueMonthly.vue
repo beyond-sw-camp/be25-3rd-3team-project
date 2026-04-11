@@ -1,33 +1,71 @@
 <script setup>
+import { ref } from 'vue'
+import BaseButton from '../../components/common/BaseButton.vue'
+import BasePagination from '../../components/common/BasePagination.vue'
+import BaseSelect from '../../components/common/BaseSelect.vue'
+
 const rows = [
-  { year: '2025년', month: '3월', orders: '45', sales: '₩8,620,000', margin: '₩1,780,000', rate: '20.1%' },
-  { year: '2025년', month: '2월', orders: '35', sales: '₩7,780,000', margin: '₩1,330,000', rate: '1708%' },
-  { year: '2024년', month: '4월', orders: '36', sales: '₩8,140,000', margin: '₩1,550,000', rate: '19.0%' },
-  { year: '2024년', month: '1월', orders: '41', sales: '₩7,770,000', margin: '₩1,300,000', rate: '16.7%' },
-  { year: '2024년', month: '10월', orders: '40', sales: '₩7,090,000', margin: '₩1,200,000', rate: '16.9%' },
+  {
+    year: '2025년',
+    month: '3월',
+    orders: '45',
+    sales: '₩8,620,000',
+    margin: '₩1,780,000',
+    rate: '20.1%',
+  },
+  {
+    year: '2025년',
+    month: '2월',
+    orders: '35',
+    sales: '₩7,780,000',
+    margin: '₩1,330,000',
+    rate: '1708%',
+  },
+  {
+    year: '2024년',
+    month: '4월',
+    orders: '36',
+    sales: '₩8,140,000',
+    margin: '₩1,550,000',
+    rate: '19.0%',
+  },
+  {
+    year: '2024년',
+    month: '1월',
+    orders: '41',
+    sales: '₩7,770,000',
+    margin: '₩1,300,000',
+    rate: '16.7%',
+  },
+  {
+    year: '2024년',
+    month: '10월',
+    orders: '40',
+    sales: '₩7,090,000',
+    margin: '₩1,200,000',
+    rate: '16.9%',
+  },
 ]
+
+const currentPage = ref(1)
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-neutral-900">월별 수익</h1>
-
-    <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+    <div
+      class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm"
+    >
       <div class="flex flex-wrap items-center gap-2">
-        <select class="rounded-md border border-neutral-300 px-3 py-2 text-sm">
+        <BaseSelect>
           <option>전체 🔻</option>
-        </select>
+        </BaseSelect>
         <span class="text-sm text-neutral-600">전체 기간</span>
         <span class="text-sm text-neutral-600">최근 6개월</span>
         <span class="text-sm text-neutral-600">최근 12개월</span>
       </div>
       <div class="flex gap-2">
-        <button type="button" class="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50">
-          필터 적용
-        </button>
-        <button type="button" class="rounded-md bg-point px-4 py-2 text-sm font-medium text-white hover:bg-point/90">
-          검색
-        </button>
+        <BaseButton variant="secondary">필터 적용</BaseButton>
+        <BaseButton>검색</BaseButton>
       </div>
     </div>
 
@@ -58,19 +96,12 @@ const rows = [
             <td class="px-4 py-4">{{ r.margin }}</td>
             <td class="px-4 py-4 text-point">{{ r.rate }}</td>
             <td class="px-4 py-4">
-              <button type="button" class="text-sm text-point hover:underline">상세보기</button>
+              <BaseButton variant="ghost">상세보기</BaseButton>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="mt-4 flex justify-center gap-1">
-      <button type="button" class="rounded border border-neutral-200 px-3 py-1 text-sm">‹</button>
-      <button type="button" class="rounded border border-point bg-point/10 px-3 py-1 text-sm font-medium text-point">
-        1
-      </button>
-      <button type="button" class="rounded border border-neutral-200 px-3 py-1 text-sm">2</button>
-      <button type="button" class="rounded border border-neutral-200 px-3 py-1 text-sm">›</button>
-    </div>
+    <BasePagination v-model:current-page="currentPage" :total-pages="2" />
   </div>
 </template>

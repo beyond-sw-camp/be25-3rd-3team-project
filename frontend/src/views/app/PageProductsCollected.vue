@@ -1,29 +1,34 @@
 <script setup>
-const statLabels = ['오늘 수집', '업로드 대기', '판매 중', '품절/중지']
+import BaseStatCard from '../../components/common/BaseStatCard.vue'
+import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
+import BaseSelect from '../../components/common/BaseSelect.vue'
+
+const stats = [
+  { label: '오늘 수집', value: 128 },
+  { label: '업로드 대기', value: 42 },
+  { label: '판매 중', value: 890 },
+  { label: '품절/중지', value: 12 },
+]
 const chips = (items) => items
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-neutral-900">수집/등록 상품 관리</h1>
-
-    <section class="mt-6">
-      <h2 class="text-sm font-semibold text-neutral-700">수집 / 등록 건수</h2>
+    <section>
+      <BaseSectionTitle>수집 / 등록 건수</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
       <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div
-          v-for="(label, i) in statLabels"
-          :key="label"
-          class="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm"
-        >
-          <p class="text-sm text-neutral-500">{{ label }}</p>
-          <p class="mt-2 text-2xl font-bold text-neutral-900">{{ [128, 42, 890, 12][i] }}</p>
-        </div>
+        <BaseStatCard
+          v-for="stat in stats"
+          :key="stat.label"
+          :label="stat.label"
+          :value="stat.value"
+        />
       </div>
     </section>
 
     <section class="mt-10">
-      <h2 class="text-sm font-semibold text-neutral-700">수집 / 등록 상품 조회</h2>
+      <BaseSectionTitle>수집 / 등록 상품 조회</BaseSectionTitle>
       <div class="mt-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
         <div class="space-y-4 text-sm">
           <div>
@@ -82,7 +87,16 @@ const chips = (items) => items
             <p class="mb-2 text-neutral-600">마켓 타입 · 소싱처</p>
             <div class="flex flex-wrap gap-2">
               <button
-                v-for="c in chips(['쿠팡', '스마트스토어', '11번가', '옥션', '아마존', '라쿠텐', '타오바오', '알리바바'])"
+                v-for="c in chips([
+                  '쿠팡',
+                  '스마트스토어',
+                  '11번가',
+                  '옥션',
+                  '아마존',
+                  '라쿠텐',
+                  '타오바오',
+                  '알리바바',
+                ])"
                 :key="c"
                 type="button"
                 class="rounded border border-neutral-300 px-3 py-1.5 text-xs hover:bg-neutral-50"
@@ -96,7 +110,7 @@ const chips = (items) => items
     </section>
 
     <section class="mt-10">
-      <h2 class="text-sm font-semibold text-neutral-700">수집 / 등록 상품 목록</h2>
+      <BaseSectionTitle>수집 / 등록 상품 목록</BaseSectionTitle>
       <div class="mt-4 overflow-x-auto rounded-lg border border-neutral-200 bg-white">
         <table class="min-w-[1000px] w-full text-left text-sm">
           <thead class="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-600">
@@ -111,21 +125,27 @@ const chips = (items) => items
           </thead>
           <tbody>
             <tr v-for="n in 6" :key="n" class="border-b border-neutral-100">
-              <td class="px-3 py-3"><button type="button" class="text-point hover:underline">수정</button></td>
+              <td class="px-3 py-3">
+                <button type="button" class="text-point hover:underline">수정</button>
+              </td>
               <td class="px-3 py-3">—</td>
               <td class="px-3 py-3 font-mono text-xs">B08XYZ{{ n }}KR</td>
               <td class="px-3 py-3">쿠팡</td>
-              <td class="px-3 py-3"><span class="inline-block size-12 rounded bg-neutral-100" /></td>
-              <td class="px-3 py-3"><span class="rounded bg-emerald-50 px-2 py-0.5 text-xs">판매 중</span></td>
+              <td class="px-3 py-3">
+                <span class="inline-block size-12 rounded bg-neutral-100" />
+              </td>
+              <td class="px-3 py-3">
+                <span class="rounded bg-emerald-50 px-2 py-0.5 text-xs">판매 중</span>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="mt-3 flex items-center justify-end gap-2 text-sm">
         <span class="text-neutral-500">페이지당</span>
-        <select class="rounded border border-neutral-300 px-2 py-1">
+        <BaseSelect size="sm">
           <option>10</option>
-        </select>
+        </BaseSelect>
       </div>
     </section>
   </div>

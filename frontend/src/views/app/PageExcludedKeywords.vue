@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import BaseButton from '../../components/common/BaseButton.vue'
+import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 
 const forbidden = ref('')
 const exclude = ref('')
@@ -11,15 +13,13 @@ const rows = [
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-neutral-900">제외/ 금지어</h1>
-
-    <section class="mt-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+    <section class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
       <div class="flex gap-2 text-sm text-neutral-700">
         <span class="text-amber-600">ⓘ</span>
         <p>수집·등록 시 아래 단어가 포함된 상품은 자동으로 필터링됩니다.</p>
       </div>
 
-      <h2 class="mt-8 text-lg font-semibold text-neutral-900">금지단어</h2>
+      <BaseSectionTitle class="mt-8">금지단어</BaseSectionTitle>
       <p class="mt-2 text-sm text-neutral-600">상품명·옵션에 사용할 수 없는 단어를 등록합니다.</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <input
@@ -28,12 +28,10 @@ const rows = [
           placeholder="금지어 입력 후 추가"
           class="min-w-[240px] flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
-        <button type="button" class="rounded-md bg-point px-4 py-2 text-sm font-medium text-white hover:bg-point/90">
-          + 추가하기
-        </button>
+        <BaseButton>+ 추가하기</BaseButton>
       </div>
 
-      <h2 class="mt-10 text-lg font-semibold text-neutral-900">제외 단어</h2>
+      <BaseSectionTitle class="mt-10">제외 단어</BaseSectionTitle>
       <p class="mt-2 text-sm text-neutral-600">소싱 대상에서 제외할 키워드입니다.</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <input
@@ -42,9 +40,7 @@ const rows = [
           placeholder="제외어 입력 후 추가"
           class="min-w-[240px] flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
         />
-        <button type="button" class="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50">
-          + 추가하기
-        </button>
+        <BaseButton variant="secondary">+ 추가하기</BaseButton>
       </div>
     </section>
 
@@ -64,7 +60,7 @@ const rows = [
             <td class="px-4 py-4 font-medium">{{ r.word }}</td>
             <td class="px-4 py-4 text-neutral-600">{{ r.note }}</td>
             <td class="px-4 py-4">
-              <button type="button" class="text-red-600 hover:underline">삭제</button>
+              <BaseButton variant="danger">삭제</BaseButton>
             </td>
           </tr>
         </tbody>

@@ -1,4 +1,6 @@
 <script setup>
+import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
+
 const filters = [
   { title: '브랜드 유형', hint: '브랜드 유형을 선택하세요.' },
   { title: '검색어 유형', hint: '검색어 유형을 선택하세요.' },
@@ -6,15 +8,26 @@ const filters = [
   { title: '계절성', hint: '많이 팔리는 달을 선택하세요.' },
   { title: '검색 제한', hint: '최대 검색양을 선택하세요.' },
 ]
-const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const months = [
+  '1월',
+  '2월',
+  '3월',
+  '4월',
+  '5월',
+  '6월',
+  '7월',
+  '8월',
+  '9월',
+  '10월',
+  '11월',
+  '12월',
+]
 </script>
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold tracking-tight text-neutral-900">카테고리 소싱</h1>
-
-    <section class="mt-6">
-      <h2 class="text-sm font-semibold text-neutral-700">검색 필터</h2>
+    <section>
+      <BaseSectionTitle>검색 필터</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
       <div class="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
         <div
@@ -65,7 +78,7 @@ const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', 
     </section>
 
     <section class="mt-10">
-      <h2 class="text-sm font-semibold text-neutral-700">검색 결과</h2>
+      <BaseSectionTitle>검색 결과</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
       <p class="mt-4 text-sm text-neutral-600">2026년 2월 14일 기준 · 검색 완료 : 500 개</p>
       <div class="mt-4 overflow-x-auto rounded-lg border border-neutral-200 bg-white">
@@ -101,9 +114,16 @@ const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', 
         </table>
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
-        <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">표 상태 저장</button>
-        <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">표 상태 초기화</button>
-        <button type="button" class="rounded border border-point bg-point/10 px-3 py-1.5 text-xs text-point">
+        <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
+          표 상태 저장
+        </button>
+        <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
+          표 상태 초기화
+        </button>
+        <button
+          type="button"
+          class="rounded border border-point bg-point/10 px-3 py-1.5 text-xs text-point"
+        >
           선택한 키워드 저장
         </button>
         <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
