@@ -6,13 +6,18 @@ import { sidebarNav } from '../config/appShellLayoutConfig'
 const route = useRoute()
 
 const currentPageTitle = computed(() => {
-  // 사이드바에서 선택된 메뉴명을 header 제목으로 사용한다.
+  // link에 parentLabel이 있으면 "상위 제목 > 현재 제목" 형식으로 표시한다.
   const activeItem = sidebarNav.find(
     (item) =>
-      item.type === 'link' && (route.path === item.to || route.path.startsWith(item.to + '/')),
+      ['head_link', 'link'].includes(item.type) &&
+      (route.path === item.to || route.path.startsWith(item.to + '/')),
   )
 
-  return activeItem?.label ?? ''
+  if (!activeItem) return ''
+
+  return activeItem.parentLabel
+    ? `${activeItem.parentLabel} > ${activeItem.label}`
+    : activeItem.label
 })
 </script>
 
