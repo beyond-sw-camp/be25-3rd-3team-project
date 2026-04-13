@@ -14,61 +14,61 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: HomeView,
   },
   {
     path: '/login',
     name: 'login',
     component: LoginView,
-    meta: { guestOnly: true }
+    meta: { guestOnly: true },
   },
   {
     path: '/signup',
     name: 'signup',
     component: SignupView,
-    meta: { guestOnly: true }
+    meta: { guestOnly: true },
   },
   {
     path: '/profile',
     name: 'profile',
     component: ProfileView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/profile/info',
     name: 'profile-info',
     component: ProfileInfoView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/profile/edit',
     name: 'profile-edit',
     component: ProfileEditView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/profile/delete',
     name: 'profile-delete',
     component: ProfileDeleteView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/find-id',
     name: 'find-id',
     component: FindIdView,
-    meta: { guestOnly: true }
+    meta: { guestOnly: true },
   },
   {
     path: '/find-password',
     name: 'find-password',
     component: FindPasswordView,
-    meta: { guestOnly: true }
-  }
+    meta: { guestOnly: true },
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 router.beforeEach(async (to) => {
@@ -80,7 +80,7 @@ router.beforeEach(async (to) => {
   try {
     await api.get('/users/me')
     isLoggedIn = true
-  } catch (err) {
+  } catch {
     isLoggedIn = false
   }
 

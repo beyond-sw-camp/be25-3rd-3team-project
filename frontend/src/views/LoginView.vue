@@ -12,20 +12,19 @@ const rememberId = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-// OAuth 시작 주소는 게이트웨이(9000) 기준
-const OAUTH_BASE_URL = 'http://100.119.201.17:9000'
+const oauthBaseUrl = (api.defaults.baseURL || '').replace(/\/$/, '')
 
 const handleLogin = async () => {
   errorMessage.value = ''
   successMessage.value = ''
 
   if (!username.value.trim()) {
-    errorMessage.value = '아이디를 입력해줘.'
+    errorMessage.value = '?꾩씠?붾? ?낅젰?댁쨾.'
     return
   }
 
   if (!password.value.trim()) {
-    errorMessage.value = '비밀번호를 입력해줘.'
+    errorMessage.value = '鍮꾨?踰덊샇瑜??낅젰?댁쨾.'
     return
   }
 
@@ -36,24 +35,26 @@ const handleLogin = async () => {
 
     const response = await api.post('/users/login', params, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     })
+    const meResponse = await api.get('/users/me')
 
-    console.log('로그인 응답:', response)
-    successMessage.value = '로그인 성공'
+    console.log('濡쒓렇???묐떟:', response)
+    console.log('/users/me 응답 status:', meResponse.status)
+    successMessage.value = '濡쒓렇???깃났'
     router.push('/')
   } catch (err) {
-    console.error('로그인 실패:', err)
+    console.error('濡쒓렇???ㅽ뙣:', err)
 
     if (err.response) {
       if (err.response.status === 401) {
-        errorMessage.value = '아이디 또는 비밀번호가 올바르지 않아.'
+        errorMessage.value = '?꾩씠???먮뒗 鍮꾨?踰덊샇媛 ?щ컮瑜댁? ?딆븘.'
       } else {
-        errorMessage.value = `로그인 실패 / status: ${err.response.status}`
+        errorMessage.value = `濡쒓렇???ㅽ뙣 / status: ${err.response.status}`
       }
     } else {
-      errorMessage.value = '서버 연결 실패'
+      errorMessage.value = '?쒕쾭 ?곌껐 ?ㅽ뙣'
     }
   }
 }
@@ -71,15 +72,15 @@ const goToFindPassword = () => {
 }
 
 const handleGoogleLogin = () => {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/google`
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/google`
 }
 
 const handleKakaoLogin = () => {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/kakao`
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/kakao`
 }
 
 const handleNaverLogin = () => {
-  window.location.href = `${OAUTH_BASE_URL}/oauth2/authorization/naver`
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/naver`
 }
 </script>
 
@@ -93,9 +94,9 @@ const handleNaverLogin = () => {
 
         <div class="brand-content">
           <h1 class="brand-copy">
-            지금 로그인하고<br />
-            소싱 자동화를<br />
-            경험하세요
+            Log in now<br />
+            and automate<br />
+            your sourcing flow
           </h1>
 
           <p class="brand-sub">
@@ -115,7 +116,7 @@ const handleNaverLogin = () => {
                 v-model="username"
                 type="text"
                 class="text-input"
-                placeholder="아이디를 입력하세요."
+                placeholder="?꾩씠?붾? ?낅젰?섏꽭??"
             />
           </div>
 
@@ -125,33 +126,33 @@ const handleNaverLogin = () => {
                 v-model="password"
                 type="password"
                 class="text-input"
-                placeholder="비밀번호를 입력하세요."
+                placeholder="鍮꾨?踰덊샇瑜??낅젰?섏꽭??"
                 @keyup.enter="handleLogin"
             />
           </div>
 
           <label class="remember-row">
             <input v-model="rememberId" type="checkbox" />
-            <span>아이디 저장</span>
+            <span>Remember ID</span>
           </label>
 
           <button class="primary-btn" @click="handleLogin">
-            로그인
+            濡쒓렇??
           </button>
 
           <div class="sub-links">
             <button class="text-link-btn" @click="goToSignup">
-              회원가입하기
+              Sign up
             </button>
             <span class="divider">|</span>
             <button class="text-link-btn" @click="goToFindPassword">
-              비밀번호 찾기
+              Find password
             </button>
           </div>
 
           <div class="sub-links sub-links-second">
             <button class="text-link-btn" @click="goToFindId">
-              아이디 찾기
+              Find ID
             </button>
           </div>
 
@@ -164,7 +165,7 @@ const handleNaverLogin = () => {
           </p>
 
           <div class="sns-section">
-            <p class="sns-title">간편 로그인</p>
+            <p class="sns-title">Social login</p>
 
             <button class="sns-btn kakao-btn" @click="handleKakaoLogin">
               Kakao
