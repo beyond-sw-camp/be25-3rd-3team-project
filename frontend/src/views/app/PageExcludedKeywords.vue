@@ -1,26 +1,35 @@
 <script setup>
 import { ref } from 'vue'
 import BaseButton from '../../components/common/BaseButton.vue'
+import BaseCheckTable from '../../components/common/BaseCheckTable.vue'
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 
 const forbidden = ref('')
 const exclude = ref('')
+const selectedKeys = ref([])
+const columns = [
+  { key: 'type', label: '구분' },
+  { key: 'word', label: '단어', cellClass: 'font-medium' },
+  { key: 'note', label: '메모', cellClass: 'text-neutral-600' },
+  { key: 'management', label: '관리' },
+]
 const rows = [
-  { type: '금지', word: '정품보장', note: '과장 표현' },
-  { type: '제외', word: '해외직구', note: '카테고리 제외' },
+  { id: 'forbidden-1', type: '금지', word: '정품보장', note: '과장 표현' },
+  { id: 'exclude-1', type: '제외', word: '해외직구', note: '카테고리 제외' },
 ]
 </script>
 
 <template>
   <div>
     <section class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <div class="flex gap-2 text-sm text-neutral-700">
-        <span class="text-amber-600">ⓘ</span>
-        <p>수집·등록 시 아래 단어가 포함된 상품은 자동으로 필터링됩니다.</p>
+      <BaseSectionTitle>금지단어</BaseSectionTitle>
+      <div class="mt-2 flex">
+        <!-- <p class="mt-2 text-sm text-neutral-600">상품명·옵션에 사용할 수 없는 단어를 등록합니다.</p> -->
+        <span class="mr-2 text-amber-600">ⓘ</span>
+        <p class="text-sm text-neutral-700">
+          상품명에 해당 단어가 포함되면 검색, 수집, 업로드 과정에서 자동으로 제외됩니다.
+        </p>
       </div>
-
-      <BaseSectionTitle class="mt-8">금지단어</BaseSectionTitle>
-      <p class="mt-2 text-sm text-neutral-600">상품명·옵션에 사용할 수 없는 단어를 등록합니다.</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <input
           v-model="forbidden"
@@ -31,8 +40,13 @@ const rows = [
         <BaseButton>+ 추가하기</BaseButton>
       </div>
 
-      <BaseSectionTitle class="mt-10">제외 단어</BaseSectionTitle>
-      <p class="mt-2 text-sm text-neutral-600">소싱 대상에서 제외할 키워드입니다.</p>
+      <BaseSectionTitle class="mt-10">치환 단어</BaseSectionTitle>
+      <div class="mt-2 flex">
+        <span class="mr-2 text-amber-600">ⓘ</span>
+        <p class="text-sm text-neutral-700">
+          특정 단어를 다른 표현으로 자동 변경됩니다. (예 : 무료배송 → 배송비 포함)
+        </p>
+      </div>
       <div class="mt-4 flex flex-wrap gap-2">
         <input
           v-model="exclude"
@@ -44,27 +58,23 @@ const rows = [
       </div>
     </section>
 
-    <section class="mt-8 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-neutral-100 bg-neutral-50 text-xs text-neutral-600">
-          <tr>
-            <th class="px-4 py-3 font-medium">구분</th>
-            <th class="px-4 py-3 font-medium">단어</th>
-            <th class="px-4 py-3 font-medium">메모</th>
-            <th class="px-4 py-3 font-medium">관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(r, i) in rows" :key="i" class="border-b border-neutral-100">
-            <td class="px-4 py-4">{{ r.type }}</td>
-            <td class="px-4 py-4 font-medium">{{ r.word }}</td>
-            <td class="px-4 py-4 text-neutral-600">{{ r.note }}</td>
-            <td class="px-4 py-4">
-              <BaseButton variant="danger">삭제</BaseButton>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <section class="mt-8">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <BaseSectionTitle>등록 단어 목록</BaseSectionTitle>
+        <span class="text-sm text-neutral-500">{{ selectedKeys.length }}개 선택</span>
+      </div>
+      <BaseCheckTable
+        v-model:selected-keys="selectedKeys"
+        :columns="columns"
+        :rows="rows"
+        row-key="id"
+        select-all-label="등록 단어 전체 선택"
+        :row-select-label="(row) => `${row.word} 선택`"
+      >
+        <template #cell-management>
+          <BaseButton variant="danger">삭제</BaseButton>
+        </template>
+      </BaseCheckTable>
     </section>
   </div>
 </template>

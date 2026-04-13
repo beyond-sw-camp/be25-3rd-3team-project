@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
+import BaseCheckTable from '../common/BaseCheckTable.vue'
 import BasePagination from '../common/BasePagination.vue'
 import BaseSectionTitle from '../common/BaseSectionTitle.vue'
-import { useRowSelection } from '../../composables/useRowSelection'
 
 defineProps({
   title: { type: String, default: '주문 목록' },
@@ -40,8 +40,15 @@ const rows = ref([
   },
 ])
 
-const { selectedKeys, allSelected, isSelected, toggleRow } = useRowSelection(rows, (row) => row.id)
+const columns = [
+  { key: 'order', label: '주문번호 / 마켓' },
+  { key: 'status', label: '배송 상태' },
+  { key: 'buyer', label: '구매자', cellClass: 'text-neutral-700' },
+  { key: 'product', label: '상품' },
+  { key: 'margin', label: '마진', cellClass: 'text-neutral-800' },
+]
 
+const selectedKeys = ref([])
 const selectedCount = computed(() => selectedKeys.value.length)
 </script>
 
@@ -51,52 +58,29 @@ const selectedCount = computed(() => selectedKeys.value.length)
       <BaseSectionTitle>{{ title }}</BaseSectionTitle>
       <span class="text-sm text-neutral-500">{{ summaryLabel }} {{ selectedCount }}개 선택</span>
     </div>
-    <div class="mt-4 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-      <div
-        class="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs font-medium text-neutral-600 md:grid-cols-12 md:text-sm"
+    <div class="mt-4">
+      <BaseCheckTable
+        v-model:selected-keys="selectedKeys"
+        :columns="columns"
+        :rows="rows"
+        row-key="id"
+        select-all-label="주문 전체 선택"
+        :row-select-label="(row) => `${row.id} 주문 선택`"
       >
-        <span class="md:col-span-1">
-          <input
-            v-model="allSelected"
-            type="checkbox"
-            class="rounded border-neutral-300"
-            aria-label="주문 전체 선택"
-          />
-        </span>
-        <span class="md:col-span-2">주문번호 / 마켓</span>
-        <span class="md:col-span-2">배송 상태</span>
-        <span class="md:col-span-2">구매자</span>
-        <span class="md:col-span-3">상품</span>
-        <span class="md:col-span-2">마진</span>
-      </div>
-      <div
-        v-for="row in rows"
-        :key="row.id"
-        class="grid grid-cols-1 gap-2 border-b border-neutral-100 px-4 py-4 text-sm last:border-0 md:grid-cols-12 md:items-center"
-      >
-        <div class="flex items-center md:col-span-1">
-          <input
-            type="checkbox"
-            class="rounded border-neutral-300"
-            :checked="isSelected(row.id)"
-            :aria-label="`${row.id} 주문 선택`"
-            @change="toggleRow(row.id, $event.target.checked)"
-          />
-        </div>
-        <div class="md:col-span-2">
+        <template #cell-order="{ row }">
           <span class="font-mono text-neutral-800">{{ row.id }}</span>
           <span class="ml-2 text-neutral-500">{{ row.market }}</span>
-        </div>
-        <div class="md:col-span-2">
+        </template>
+        <template #cell-status="{ row }">
           <span class="rounded bg-neutral-100 px-2 py-1 text-xs">{{ row.status }}</span>
-        </div>
-        <div class="text-neutral-700 md:col-span-2">{{ row.buyer }}</div>
-        <div class="flex items-center gap-2 md:col-span-3">
-          <span class="size-14 shrink-0 rounded bg-neutral-100" />
-          <span>{{ row.product }}</span>
-        </div>
-        <div class="text-neutral-800 md:col-span-2">{{ row.margin }}</div>
-      </div>
+        </template>
+        <template #cell-product="{ row }">
+          <div class="flex items-center gap-2">
+            <span class="size-14 shrink-0 rounded bg-neutral-100" />
+            <span>{{ row.product }}</span>
+          </div>
+        </template>
+      </BaseCheckTable>
     </div>
     <BasePagination v-model:current-page="currentPage" :total-pages="2" />
   </section>
