@@ -61,55 +61,373 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div style="padding: 40px; max-width: 700px; margin: 0 auto;">
-    <button
-        @click="goBack"
-        style="padding: 12px 18px; cursor: pointer; margin-bottom: 32px;"
-    >
-      ← 이전 화면
-    </button>
+  <div class="delete-page">
+    <div class="delete-shell">
+      <section class="brand-panel">
+        <div class="brand-shape brand-cube"></div>
+        <div class="brand-shape brand-paper"></div>
+        <div class="brand-shape brand-line"></div>
 
-    <h1 style="text-align: center; margin-bottom: 32px;">회원 탈퇴</h1>
+        <div class="brand-content">
+          <h1 class="brand-copy">
+            계정 탈퇴는<br />
+            신중하게<br />
+            결정하세요
+          </h1>
 
-    <div style="background: #fff4d6; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-      <strong>주의사항</strong>
-      <p style="margin-top: 12px;">
-        회원 탈퇴 시 계정과 관련된 모든 데이터가 삭제되며, 이 작업은 되돌릴 수 없어.
-      </p>
-    </div>
+          <p class="brand-sub">
+            Sourcing Automation System<br />
+            - AutoSource
+          </p>
+        </div>
+      </section>
 
-    <div style="margin-bottom: 16px;">
-      <label style="display: block; margin-bottom: 8px;">비밀번호 확인</label>
-      <input
-          v-model="password"
-          type="password"
-          placeholder="현재 비밀번호를 입력해줘"
-          style="width: 100%; padding: 12px; box-sizing: border-box;"
-      />
-    </div>
+      <section class="content-panel">
+        <div class="content-wrap">
+          <button class="back-btn" @click="goBack">
+            ← 마이페이지로
+          </button>
 
-    <p v-if="errorMessage" style="color: red; margin-bottom: 16px;">
-      {{ errorMessage }}
-    </p>
+          <p class="page-kicker danger-kicker">DANGER ZONE</p>
+          <h2 class="page-title danger-title">회원 탈퇴</h2>
+          <p class="page-desc">
+            탈퇴하면 계정과 관련된 모든 데이터가 삭제되고, 되돌릴 수 없어.
+          </p>
 
-    <p v-if="successMessage" style="color: green; margin-bottom: 16px;">
-      {{ successMessage }}
-    </p>
+          <div class="warning-box">
+            정말 탈퇴할 거면 현재 비밀번호를 입력해줘.
+          </div>
 
-    <div style="display: flex; gap: 12px;">
-      <button
-          @click="handleDelete"
-          style="flex: 1; padding: 14px; cursor: pointer; color: white; background: #d33; border: none;"
-      >
-        탈퇴하기
-      </button>
+          <div class="form-card">
+            <div class="form-group">
+              <label class="input-label">비밀번호 확인</label>
+              <input
+                  v-model="password"
+                  type="password"
+                  class="text-input"
+                  placeholder="현재 비밀번호를 입력해줘"
+              />
+            </div>
 
-      <button
-          @click="goBack"
-          style="flex: 1; padding: 14px; cursor: pointer;"
-      >
-        취소
-      </button>
+            <div v-if="errorMessage" class="message error-message">
+              {{ errorMessage }}
+            </div>
+
+            <div v-if="successMessage" class="message success-message">
+              {{ successMessage }}
+            </div>
+
+            <div class="action-row">
+              <button class="danger-btn" @click="handleDelete">
+                탈퇴하기
+              </button>
+
+              <button class="secondary-btn" @click="goBack">
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
+
+<style scoped>
+.delete-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.delete-shell {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 760px;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  background: #f3f3f3;
+  overflow: hidden;
+}
+
+.brand-panel {
+  position: relative;
+  background: #ff8744;
+  padding: 54px 34px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+.brand-copy {
+  margin: 0;
+  color: #ffffff;
+  font-size: 56px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  word-break: keep-all;
+}
+
+.brand-sub {
+  margin-top: 120px;
+  color: #fff7f2;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.brand-shape {
+  position: absolute;
+  opacity: 0.32;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.brand-cube {
+  top: 18px;
+  right: 92px;
+  width: 220px;
+  height: 160px;
+  border: 4px solid rgba(255, 234, 222, 0.8);
+  border-radius: 28px;
+  transform: rotate(-32deg);
+}
+
+.brand-paper {
+  right: -30px;
+  bottom: 120px;
+  width: 230px;
+  height: 230px;
+  border: 4px solid rgba(255, 234, 222, 0.7);
+  border-radius: 28px;
+  transform: rotate(28deg) skew(-8deg, -8deg);
+}
+
+.brand-line {
+  left: -20px;
+  bottom: 26px;
+  width: 180px;
+  height: 70px;
+  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
+  border-left: 5px solid transparent;
+  border-radius: 10px;
+}
+
+.content-panel {
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 46px 40px;
+}
+
+.content-wrap {
+  width: 100%;
+  max-width: 620px;
+}
+
+.back-btn {
+  margin-bottom: 18px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  color: #444444;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page-kicker {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.danger-kicker {
+  color: #dc2626;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.danger-title {
+  color: #7f1d1d;
+}
+
+.page-desc {
+  margin: 10px 0 20px 0;
+  color: #7a7a7a;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.warning-box {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-card {
+  padding: 22px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e2e2;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #222222;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.text-input {
+  width: 100%;
+  height: 62px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #222222;
+  font-size: 17px;
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: #ff8744;
+  background: #ffffff;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.danger-btn,
+.secondary-btn {
+  flex: 1;
+  height: 62px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.danger-btn {
+  border: none;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.secondary-btn {
+  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  color: #444444;
+}
+
+.message {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  color: #d93025;
+}
+
+.success-message {
+  background: #eefaf0;
+  border: 1px solid #cde9d3;
+  color: #1a7f37;
+}
+
+@media (max-width: 1080px) {
+  .delete-shell {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+    min-height: auto;
+  }
+
+  .brand-panel {
+    min-height: 320px;
+    padding: 38px 28px;
+  }
+
+  .brand-copy {
+    font-size: 40px;
+  }
+
+  .brand-sub {
+    margin-top: 58px;
+    font-size: 15px;
+  }
+
+  .content-panel {
+    padding: 34px 22px 44px 22px;
+  }
+
+  .page-title {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 720px) {
+  .delete-page {
+    padding: 0;
+  }
+
+  .delete-shell {
+    min-height: 100vh;
+  }
+
+  .brand-panel {
+    min-height: 250px;
+  }
+
+  .brand-copy {
+    font-size: 32px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .action-row {
+    flex-direction: column;
+  }
+}
+</style>

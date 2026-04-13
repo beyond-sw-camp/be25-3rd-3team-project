@@ -6,6 +6,8 @@ import ProfileView from '../views/ProfileView.vue'
 import ProfileInfoView from '../views/ProfileInfoView.vue'
 import ProfileEditView from '../views/ProfileEditView.vue'
 import ProfileDeleteView from '../views/ProfileDeleteView.vue'
+import FindIdView from '../views/FindIdView.vue'
+import FindPasswordView from '../views/FindPasswordView.vue'
 import api from '../api/axios'
 
 const routes = [
@@ -49,6 +51,18 @@ const routes = [
     name: 'profile-delete',
     component: ProfileDeleteView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/find-id',
+    name: 'find-id',
+    component: FindIdView,
+    meta: { guestOnly: true }
+  },
+  {
+    path: '/find-password',
+    name: 'find-password',
+    component: FindPasswordView,
+    meta: { guestOnly: true }
   }
 ]
 

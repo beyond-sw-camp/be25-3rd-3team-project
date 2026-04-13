@@ -5,293 +5,436 @@ import api from '../api/axios'
 
 const router = useRouter()
 
+const username = ref('')
+const name = ref('')
 const nickname = ref('')
-const phoneNumber = ref('')
 const email = ref('')
-
-const currentPassword = ref('')
-const newPassword = ref('')
-const confirmNewPassword = ref('')
-
-const errorMessage = ref('')
-const successMessage = ref('')
+const phoneNumber = ref('')
+const error = ref('')
 
 onMounted(async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
-
   try {
     const response = await api.get('/users/me')
-    nickname.value = response.data.nickname || ''
-    email.value = response.data.email || ''
+    username.value = response.data.username
+    nickname.value = response.data.nickname
+    email.value = response.data.email
 
-    // 현재 /users/me 응답에 phoneNumber가 없다면 빈값 유지
+    if (response.data.name) {
+      name.value = response.data.name
+    }
+
     if (response.data.phoneNumber) {
       phoneNumber.value = response.data.phoneNumber
     }
   } catch (err) {
-    console.error('수정 화면 초기 데이터 조회 실패:', err)
-    errorMessage.value = '회원 정보를 불러오지 못했어.'
+    console.error('내 정보 조회 실패:', err)
+
+    if (err.response) {
+      error.value = `내 정보 조회 실패 / status: ${err.response.status}`
+    } else {
+      error.value = '서버 연결 실패'
+    }
   }
 })
 
 const goBack = () => {
-  router.push('/profile/info')
+  router.push('/profile')
 }
 
-const handleProfileUpdate = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  if (!nickname.value.trim()) {
-    errorMessage.value = '닉네임을 입력해줘.'
-    return
-  }
-
-  if (!phoneNumber.value.trim()) {
-    errorMessage.value = '전화번호를 입력해줘.'
-    return
-  }
-
-  const phoneRegex = /^010\d{8}$/
-  if (!phoneRegex.test(phoneNumber.value)) {
-    errorMessage.value = '전화번호는 010으로 시작하는 11자리 숫자만 가능해.'
-    return
-  }
-
-  if (!email.value.trim()) {
-    errorMessage.value = '이메일을 입력해줘.'
-    return
-  }
-
-  try {
-    const params = new URLSearchParams()
-    params.append('nickname', nickname.value)
-    params.append('phoneNumber', phoneNumber.value)
-    params.append('email', email.value)
-
-    const response = await api.post('/users/update', params, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-
-    console.log('프로필 수정 응답:', response)
-
-    // 백엔드 성공 시 redirect:/users/me 이므로 responseURL로 1차 판단
-    const finalUrl = response?.request?.responseURL || ''
-
-    if (finalUrl.includes('/users/me')) {
-      successMessage.value = '프로필이 수정됐어.'
-      setTimeout(() => {
-        router.push('/profile/info')
-      }, 800)
-      return
-    }
-
-    // redirect가 안 보여도, 현재 구조에서는 2xx면 일단 성공 가능성이 높음
-    successMessage.value = '프로필 수정 요청이 처리됐어.'
-    setTimeout(() => {
-      router.push('/profile/info')
-    }, 800)
-  } catch (err) {
-    console.error('프로필 수정 실패:', err)
-
-    if (err.response) {
-      errorMessage.value = `프로필 수정 실패 / status: ${err.response.status}`
-    } else {
-      errorMessage.value = '서버 연결 실패'
-    }
-  }
+const goToEdit = () => {
+  router.push('/profile/edit')
 }
 
-const handlePasswordChange = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+const goToDelete = () => {
+  router.push('/profile/delete')
+}
 
-  if (!currentPassword.value.trim()) {
-    errorMessage.value = '현재 비밀번호를 입력해줘.'
-    return
-  }
-
-  if (!newPassword.value.trim()) {
-    errorMessage.value = '새 비밀번호를 입력해줘.'
-    return
-  }
-
-  if (newPassword.value.length < 8) {
-    errorMessage.value = '새 비밀번호는 최소 8자 이상이어야 해.'
-    return
-  }
-
-  if (!confirmNewPassword.value.trim()) {
-    errorMessage.value = '새 비밀번호 확인을 입력해줘.'
-    return
-  }
-
-  if (newPassword.value !== confirmNewPassword.value) {
-    errorMessage.value = '새 비밀번호가 일치하지 않아.'
-    return
-  }
-
+const handleLogout = async () => {
   try {
-    const params = new URLSearchParams()
-    params.append('currentPassword', currentPassword.value)
-    params.append('newPassword', newPassword.value)
-    params.append('confirmPassword', confirmNewPassword.value)
-
-    const response = await api.post('/users/update/password', params, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-
-    console.log('비밀번호 변경 응답:', response)
-
-    const html = typeof response.data === 'string' ? response.data : ''
-
-    // 서버 렌더링 HTML 안에 성공/실패 문구가 실제로 포함될 수 있어서
-    // 가능한 범위에서 문자열 체크
-    if (html.includes('비밀번호가 성공적으로 변경되었습니다.')) {
-      successMessage.value = '비밀번호가 변경됐어.'
-      currentPassword.value = ''
-      newPassword.value = ''
-      confirmNewPassword.value = ''
-      return
-    }
-
-    if (html.includes('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.')) {
-      errorMessage.value = '새 비밀번호와 확인 비밀번호가 일치하지 않아.'
-      return
-    }
-
-    if (html.includes('현재 비밀번호')) {
-      errorMessage.value = '현재 비밀번호를 다시 확인해줘.'
-      return
-    }
-
-    // 현재 백엔드 구조상 성공/실패가 같은 뷰(users/update)로 와서
-    // 프론트에서 100% 구분이 어려움
-    successMessage.value = '비밀번호 변경 요청을 보냈어. 실제 반영 여부는 다시 로그인해서 확인해줘.'
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmNewPassword.value = ''
+    await api.post('/users/logout')
+    alert('로그아웃됐어.')
+    router.push('/login')
   } catch (err) {
-    console.error('비밀번호 변경 실패:', err)
-
-    if (err.response) {
-      errorMessage.value = `비밀번호 변경 실패 / status: ${err.response.status}`
-    } else {
-      errorMessage.value = '서버 연결 실패'
-    }
+    console.error('로그아웃 실패:', err)
+    alert('로그아웃 실패')
   }
 }
 </script>
 
 <template>
-  <div style="padding: 40px; max-width: 760px; margin: 0 auto;">
-    <button
-        @click="goBack"
-        style="padding: 12px 18px; cursor: pointer; margin-bottom: 32px;"
-    >
-      ← 이전 화면
-    </button>
+  <div class="info-page">
+    <div class="info-shell">
+      <section class="brand-panel">
+        <div class="brand-shape brand-cube"></div>
+        <div class="brand-shape brand-paper"></div>
+        <div class="brand-shape brand-line"></div>
 
-    <h1 style="text-align: center; margin-bottom: 32px;">내 정보 수정</h1>
+        <div class="brand-content">
+          <h1 class="brand-copy">
+            내 계정 정보를<br />
+            한눈에<br />
+            확인하세요
+          </h1>
 
-    <p v-if="errorMessage" style="color: red; margin-bottom: 16px;">
-      {{ errorMessage }}
-    </p>
+          <p class="brand-sub">
+            Sourcing Automation System<br />
+            - AutoSource
+          </p>
+        </div>
+      </section>
 
-    <p v-if="successMessage" style="color: green; margin-bottom: 16px;">
-      {{ successMessage }}
-    </p>
+      <section class="content-panel">
+        <div class="content-wrap">
+          <button class="back-btn" @click="goBack">
+            ← 마이페이지로
+          </button>
 
-    <div style="background: #f5f5f5; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
-      <h2 style="margin-bottom: 20px;">프로필 정보</h2>
+          <p class="page-kicker">ACCOUNT INFO</p>
+          <h2 class="page-title">내 정보</h2>
+          <p class="page-desc">현재 계정에 저장된 정보를 확인할 수 있어.</p>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">닉네임</label>
-        <input
-            v-model="nickname"
-            type="text"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
+          <div v-if="error" class="message error-message">
+            {{ error }}
+          </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">전화번호</label>
-        <input
-            v-model="phoneNumber"
-            type="text"
-            placeholder="01012345678"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
+          <div v-if="!error" class="info-card">
+            <div class="info-row">
+              <span class="info-label">로그인 ID</span>
+              <span class="info-value">{{ username }}</span>
+            </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">이메일</label>
-        <input
-            v-model="email"
-            type="email"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
+            <div class="info-row">
+              <span class="info-label">사용자명</span>
+              <span class="info-value">{{ name || '-' }}</span>
+            </div>
 
-      <div style="display: flex; gap: 12px;">
-        <button
-            @click="handleProfileUpdate"
-            style="flex: 1; padding: 14px; cursor: pointer;"
-        >
-          프로필 수정
-        </button>
+            <div class="info-row">
+              <span class="info-label">닉네임</span>
+              <span class="info-value">{{ nickname }}</span>
+            </div>
 
-        <button
-            @click="goBack"
-            style="flex: 1; padding: 14px; cursor: pointer;"
-        >
-          취소
-        </button>
-      </div>
-    </div>
+            <div class="info-row">
+              <span class="info-label">이메일</span>
+              <span class="info-value">{{ email }}</span>
+            </div>
 
-    <div style="background: #f5f5f5; padding: 24px; border-radius: 12px;">
-      <h2 style="margin-bottom: 20px;">비밀번호 변경</h2>
+            <div class="info-row">
+              <span class="info-label">전화번호</span>
+              <span class="info-value">{{ phoneNumber || '-' }}</span>
+            </div>
+          </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">현재 비밀번호</label>
-        <input
-            v-model="currentPassword"
-            type="password"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
+          <div class="action-row">
+            <button class="primary-btn" @click="goToEdit">
+              정보 수정
+            </button>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">새 비밀번호</label>
-        <input
-            v-model="newPassword"
-            type="password"
-            placeholder="최소 8자 이상"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
+            <button class="danger-btn" @click="goToDelete">
+              회원 탈퇴
+            </button>
+          </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px;">새 비밀번호 확인</label>
-        <input
-            v-model="confirmNewPassword"
-            type="password"
-            style="width: 100%; padding: 12px; box-sizing: border-box;"
-        />
-      </div>
-
-      <button
-          @click="handlePasswordChange"
-          style="width: 100%; padding: 14px; cursor: pointer;"
-      >
-        비밀번호 변경
-      </button>
+          <button class="secondary-btn" @click="handleLogout">
+            로그아웃
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
+
+<style scoped>
+.info-page {
+  min-height: 100vh;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.info-shell {
+  width: 100%;
+  max-width: 1280px;
+  min-height: 760px;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  background: #f3f3f3;
+  overflow: hidden;
+}
+
+.brand-panel {
+  position: relative;
+  background: #ff8744;
+  padding: 54px 34px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 2;
+  margin-top: 20px;
+}
+
+.brand-copy {
+  margin: 0;
+  color: #ffffff;
+  font-size: 56px;
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  word-break: keep-all;
+}
+
+.brand-sub {
+  margin-top: 120px;
+  color: #fff7f2;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.brand-shape {
+  position: absolute;
+  opacity: 0.32;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.brand-cube {
+  top: 18px;
+  right: 92px;
+  width: 220px;
+  height: 160px;
+  border: 4px solid rgba(255, 234, 222, 0.8);
+  border-radius: 28px;
+  transform: rotate(-32deg);
+}
+
+.brand-paper {
+  right: -30px;
+  bottom: 120px;
+  width: 230px;
+  height: 230px;
+  border: 4px solid rgba(255, 234, 222, 0.7);
+  border-radius: 28px;
+  transform: rotate(28deg) skew(-8deg, -8deg);
+}
+
+.brand-line {
+  left: -20px;
+  bottom: 26px;
+  width: 180px;
+  height: 70px;
+  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
+  border-left: 5px solid transparent;
+  border-radius: 10px;
+}
+
+.content-panel {
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 46px 40px;
+}
+
+.content-wrap {
+  width: 100%;
+  max-width: 620px;
+}
+
+.back-btn {
+  margin-bottom: 18px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  color: #444444;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.page-kicker {
+  margin: 0 0 8px 0;
+  color: #ff6b1a;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.page-title {
+  margin: 0;
+  color: #101010;
+  font-size: 48px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.page-desc {
+  margin: 10px 0 28px 0;
+  color: #7a7a7a;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.info-card {
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #7a7a7a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.info-value {
+  color: #111111;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: right;
+  word-break: break-all;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.primary-btn,
+.danger-btn,
+.secondary-btn {
+  height: 62px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn {
+  flex: 1;
+  border: none;
+  background: #f39a66;
+  color: #ffffff;
+}
+
+.primary-btn:hover {
+  background: #ef884b;
+}
+
+.danger-btn {
+  flex: 1;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.secondary-btn {
+  width: 100%;
+  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  color: #444444;
+}
+
+.message {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  color: #d93025;
+}
+
+@media (max-width: 1080px) {
+  .info-shell {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+    min-height: auto;
+  }
+
+  .brand-panel {
+    min-height: 320px;
+    padding: 38px 28px;
+  }
+
+  .brand-copy {
+    font-size: 40px;
+  }
+
+  .brand-sub {
+    margin-top: 58px;
+    font-size: 15px;
+  }
+
+  .content-panel {
+    padding: 34px 22px 44px 22px;
+  }
+
+  .page-title {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 720px) {
+  .info-page {
+    padding: 0;
+  }
+
+  .info-shell {
+    min-height: 100vh;
+  }
+
+  .brand-panel {
+    min-height: 250px;
+  }
+
+  .brand-copy {
+    font-size: 32px;
+  }
+
+  .page-title {
+    font-size: 32px;
+  }
+
+  .action-row {
+    flex-direction: column;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-value {
+    text-align: left;
+  }
+}
+</style>
