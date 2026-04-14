@@ -5,6 +5,10 @@ import api from '../api/axios'
 
 const router = useRouter()
 
+const imgPackage = 'https://www.figma.com/api/mcp/asset/9b3f6b40-e76d-45fe-bb6f-c4ce378c0a54'
+const imgSend = 'https://www.figma.com/api/mcp/asset/2190b7a2-2812-4e74-ad1a-a278b2780722'
+
+const userId = ref('')
 const username = ref('')
 const password = ref('')
 const rememberId = ref(false)
