@@ -6,9 +6,10 @@ import { mapAutoSourcingToRows, postSourcingAuto } from '../../api/sourcingApi.j
 
 const filters = [
   { title: '브랜드 유형', hint: '브랜드 유형을 선택하세요.' },
-  { title: '검색어 유형', hint: '검색어 유형을 선택하세요.' },
-  { title: '시장 규모', hint: '시장 규모를 선택하세요.' },
-  { title: '계절성', hint: '많이 팔리는 달을 선택하세요.' },
+  {
+    title: '시장 규모',
+    hint: '슬라이더를 드래그해 0억 ~ 1000억 범위에서 선택하세요.',
+  },
   { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10).' },
 ]
 const months = [
@@ -28,7 +29,10 @@ const months = [
 
 const selectedMonths = ref([])
 const itemCount = ref(1)
-const filterChoices = ref(['A', 'A', 'A', 'A', '1'])
+/** [0]=brand|non-brand, [1]=검색 제한 1|2|3 */
+const filterChoices = ref(['brand', '1'])
+/** 시장 규모 (억, 0~1000) */
+const marketSizeEok = ref(0)
 
 const loading = ref(false)
 const error = ref('')
@@ -57,11 +61,14 @@ function toggleMonth(m) {
   }
 }
 
-function setFilterRadio(filterIndex, value) {
+function setFilterRadio(cardIndex, value) {
   const next = [...filterChoices.value]
-  next[filterIndex] = value
-  filterChoices.value = next
-  if (filterIndex === 4) {
+  if (cardIndex === 0) {
+    next[0] = value
+    filterChoices.value = next
+  } else if (cardIndex === 2) {
+    next[1] = value
+    filterChoices.value = next
     const n = Number(value)
     if (!Number.isNaN(n)) itemCount.value = Math.min(10, Math.max(1, n))
   }
@@ -70,7 +77,8 @@ function setFilterRadio(filterIndex, value) {
 function resetFilters() {
   selectedMonths.value = []
   itemCount.value = 1
-  filterChoices.value = ['A', 'A', 'A', 'A', '1']
+  filterChoices.value = ['brand', '1']
+  marketSizeEok.value = 0
   rows.value = []
   error.value = ''
   info.value = ''
@@ -153,7 +161,50 @@ function formatNow() {
           <p class="font-medium text-neutral-900">{{ f.title }}</p>
           <p class="mt-2 text-sm text-neutral-500">{{ f.hint }}</p>
           <div class="mt-4 flex flex-wrap gap-2">
-            <template v-if="i === 4">
+            <template v-if="i === 0">
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="f-brand-type"
+                  class="text-point"
+                  value="brand"
+                  :checked="filterChoices[0] === 'brand'"
+                  @change="setFilterRadio(0, 'brand')"
+                />
+                브랜드
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="f-brand-type"
+                  class="text-point"
+                  value="non-brand"
+                  :checked="filterChoices[0] === 'non-brand'"
+                  @change="setFilterRadio(0, 'non-brand')"
+                />
+                미 브랜드
+              </label>
+            </template>
+            <template v-else-if="i === 1">
+              <div class="w-full space-y-3 pt-1">
+                <input
+                  v-model.number="marketSizeEok"
+                  type="range"
+                  min="0"
+                  max="1000"
+                  step="1"
+                  class="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-point"
+                />
+                <div class="flex items-center justify-between gap-2 text-xs text-neutral-500">
+                  <span>0억</span>
+                  <span class="text-base font-semibold tabular-nums text-point"
+                    >{{ marketSizeEok }}억</span
+                  >
+                  <span>1000억</span>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="i === 2">
               <label
                 v-for="opt in ['1', '2', '3']"
                 :key="opt"
@@ -164,30 +215,17 @@ function formatNow() {
                   :name="`f-${i}`"
                   class="text-point"
                   :value="opt"
-                  :checked="filterChoices[i] === opt"
+                  :checked="filterChoices[1] === opt"
                   @change="setFilterRadio(i, opt)"
                 />
                 {{ opt }}개
-              </label>
-            </template>
-            <template v-else>
-              <label v-for="m in ['A', 'B', 'C']" :key="m" class="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  :name="`f-${i}`"
-                  class="text-point"
-                  :value="m"
-                  :checked="filterChoices[i] === m"
-                  @change="setFilterRadio(i, m)"
-                />
-                {{ m }}형
               </label>
             </template>
           </div>
         </div>
       </div>
       <p class="mt-4 text-xs text-neutral-500">
-        소싱 API는 계절(월)·시즌당 개수만 사용합니다. 나머지 필터는 UI만 유지됩니다.
+        소싱 API는 계절(월)·시즌당 개수만 사용합니다. 브랜드 유형·시장 규모는 UI만 유지됩니다.
       </p>
       <div class="mt-6 flex flex-wrap gap-2">
         <button
