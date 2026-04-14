@@ -41,6 +41,47 @@ export async function postSourcingAuto(body) {
   return { ok: res.ok, status: res.status, data }
 }
 
+const uploadPath = () => import.meta.env.VITE_SOURCING_UPLOAD_PATH || '/sourcing/upload'
+
+function rawToSourcingDTO(raw) {
+  return {
+    url: raw?.url ?? '',
+    asin: raw?.asin ?? '',
+    title: raw?.title ?? '',
+    price: raw?.price ?? null,
+    currency: raw?.currency ?? 'USD',
+    brand: raw?.brand ?? '',
+    url_image: raw?.url_image ?? (raw?.images?.[0] ?? ''),
+    images: raw?.images ?? [],
+    variation: Array.isArray(raw?.variation)
+      ? raw.variation.map((v) => ({
+          asin: v?.asin ?? '',
+          dimensions: v?.dimensions ?? {},
+          price: v?.price ?? null,
+          currency: v?.currency ?? 'USD',
+          images: v?.images ?? [],
+        }))
+      : [],
+  }
+}
+
+export async function postSourcingUpload(rawProduct) {
+  const dto = rawToSourcingDTO(rawProduct)
+  const res = await fetch(uploadPath(), {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(dto),
+  })
+  const text = await res.text()
+  let data
+  try {
+    data = text ? JSON.parse(text) : null
+  } catch {
+    data = { raw: text }
+  }
+  return { ok: res.ok, status: res.status, data }
+}
+
 function reviewsToCompetition(reviews) {
   const n = Number(reviews)
   if (Number.isNaN(n)) return '—'

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
+import api from '../api/axios'
 
 const router = useRouter()
 
@@ -8,131 +9,184 @@ const imgPackage = 'https://www.figma.com/api/mcp/asset/9b3f6b40-e76d-45fe-bb6f-
 const imgSend = 'https://www.figma.com/api/mcp/asset/2190b7a2-2812-4e74-ad1a-a278b2780722'
 
 const userId = ref('')
+const username = ref('')
 const password = ref('')
 const rememberId = ref(false)
 
-function onSubmit(e) {
-  e.preventDefault()
-  router.push('/app/sourcing/category')
+const errorMessage = ref('')
+const successMessage = ref('')
+
+const oauthBaseUrl = (api.defaults.baseURL || '').replace(/\/$/, '')
+
+const handleLogin = async () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  if (!username.value.trim()) {
+    errorMessage.value = '아이디를 입력하세요.'
+    return
+  }
+
+  if (!password.value.trim()) {
+    errorMessage.value = '비밀번호를 입력하세요.'
+    return
+  }
+
+  try {
+    const params = new URLSearchParams()
+    params.append('username', username.value)
+    params.append('password', password.value)
+
+    const response = await api.post('/users/login', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    })
+    const meResponse = await api.get('/users/me')
+
+    // console.log('로그인 응답:', response)
+    // console.log('/users/me 응답 status:', meResponse.status)
+    successMessage.value = '로그인 성공'
+    router.push('/')
+  } catch (err) {
+    // console.error('로그인 실패:', err)
+
+    if (err.response) {
+      if (err.response.status === 401) {
+        errorMessage.value = '아이디나 비밀번호가 틀렸습니다.'
+      } else {
+        errorMessage.value = `로그인 실패 / status: ${err.response.status}`
+      }
+    } else {
+      errorMessage.value = '서버 연결 실패'
+    }
+  }
+}
+
+const goToSignup = () => {
+  router.push('/signup')
+}
+
+const goToFindId = () => {
+  router.push('/find-id')
+}
+
+const goToFindPassword = () => {
+  router.push('/find-password')
+}
+
+const handleGoogleLogin = () => {
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/google`
+}
+
+const handleKakaoLogin = () => {
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/kakao`
+}
+
+const handleNaverLogin = () => {
+  window.location.href = `${oauthBaseUrl}/oauth2/authorization/naver`
 }
 </script>
 
 <template>
-  <div class="flex min-h-svh w-full flex-col bg-white font-sans md:flex-row">
-    <!-- 좌측 브랜딩 -->
-    <aside
-      class="relative min-h-[42vh] w-full overflow-hidden bg-[rgba(255,122,51,0.94)] text-white md:min-h-svh md:w-1/2"
-    >
-      <div
-        class="pointer-events-none absolute -top-12 left-[17%] h-[470px] w-[499px] overflow-hidden opacity-95 max-md:left-4 max-md:w-[280px]"
-        aria-hidden="true"
-      >
-        <div class="absolute inset-[8.34%_12.5%_8%_12.5%]">
-          <div class="absolute inset-[-1.02%_-1.07%]">
-            <img :src="imgPackage" alt="" class="block size-full max-w-none" />
-          </div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1180px] overflow-hidden bg-[#f3f3f3] max-[980px]:min-h-0 max-[980px]:max-w-[700px] max-[980px]:grid-cols-1 sm:min-h-[760px] md:grid-cols-2">
+      <section class="relative flex min-h-[280px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[980px]:min-h-[340px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
+
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[34px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[980px]:text-[44px] sm:text-[62px]">
+            Log in now<br />
+            and automate<br />
+            your sourcing flow
+          </h1>
+
+          <p class="mt-[60px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
+            Sourcing Automation System<br />
+            - AutoSource
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div
-        class="pointer-events-none absolute bottom-[8%] right-[8%] flex h-[280px] w-[280px] items-center justify-center max-md:hidden lg:h-[360px] lg:w-[360px]"
-        aria-hidden="true"
-      >
-        <div class="flex-none -scale-y-100 rotate-180">
-          <div class="relative h-full w-full overflow-hidden">
-            <div class="absolute inset-[8.33%]">
-              <div class="absolute inset-[-0.5%]">
-                <img :src="imgSend" alt="" class="block size-full max-w-none" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[980px]:px-6 max-[980px]:pb-12 max-[980px]:pt-[38px] sm:px-[46px] sm:py-[54px]">
+        <div class="w-full max-w-[460px]">
+          <h2 class="mb-8 mt-0 text-[34px] font-extrabold leading-[1.1] tracking-[-1px] text-[#101010] max-[980px]:mb-8 max-[980px]:text-[42px] sm:mb-[42px] sm:text-[54px]">
+            AutoSource
+          </h2>
 
-      <div
-        class="relative z-[1] flex h-full flex-col justify-center px-8 py-12 sm:px-12 md:px-16 lg:pl-20"
-      >
-        <h2
-          class="max-w-[553px] text-3xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-[70px] lg:leading-[1.15]"
-        >
-          <span class="block">지금 로그인하고</span>
-          <span class="block">소싱 자동화를</span>
-          <span class="block">경험하세요</span>
-        </h2>
-        <p
-          class="mt-8 max-w-md text-base font-medium text-white/95 sm:mt-10 sm:text-lg md:text-[20px]"
-        >
-          Sourcing Automation System
-          <br />
-          - AutoSource
-        </p>
-      </div>
-    </aside>
-
-    <!-- 우측 폼 -->
-    <section
-      class="flex w-full flex-1 flex-col justify-center px-6 py-10 sm:px-10 md:w-1/2 md:py-16 lg:px-20"
-    >
-      <div class="mx-auto w-full max-w-[736px]">
-        <RouterLink
-          to="/"
-          class="mb-6 inline-block text-sm text-neutral-500 no-underline hover:text-point md:mb-8"
-        >
-          ← 시작 페이지
-        </RouterLink>
-        <h1 class="mb-8 text-4xl font-bold text-black sm:text-5xl md:mb-10 md:text-[60px]">
-          AutoSource
-        </h1>
-
-        <form class="space-y-6 md:space-y-8" @submit="onSubmit">
-          <div>
-            <label class="sr-only" for="login-id">아이디</label>
+          <div class="mb-[22px]">
             <input
-              id="login-id"
-              v-model="userId"
+              id="username"
+              v-model="username"
               type="text"
-              autocomplete="username"
-              placeholder="아이디를 입력하세요."
-              class="h-16 w-full rounded-[5px] border border-[#d9d9d9] px-4 text-lg text-neutral-900 placeholder:text-[#aaa] outline-none ring-point/30 focus:ring-2 md:h-[87px] md:px-6 md:text-[30px]"
+              class="h-16 w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[22px] text-[18px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[18px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[72px] sm:text-[20px] sm:placeholder:text-[20px]"
+              placeholder="아이디를 입력하세요"
             />
           </div>
-          <div>
-            <label class="sr-only" for="login-pw">비밀번호</label>
+
+          <div class="mb-[22px]">
             <input
-              id="login-pw"
+              id="password"
               v-model="password"
               type="password"
-              autocomplete="current-password"
-              placeholder="비밀번호를 입력하세요."
-              class="h-16 w-full rounded-[5px] border border-[#d9d9d9] px-4 text-lg text-neutral-900 placeholder:text-[#aaa] outline-none ring-point/30 focus:ring-2 md:h-[87px] md:px-6 md:text-[30px]"
+              class="h-16 w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[22px] text-[18px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[18px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[72px] sm:text-[20px] sm:placeholder:text-[20px]"
+              placeholder="비밀번호를 입력하세요"
+              @keyup.enter="handleLogin"
             />
           </div>
 
-          <label class="flex cursor-pointer items-center gap-3 text-black md:gap-4 md:text-[30px]">
-            <input
-              v-model="rememberId"
-              type="checkbox"
-              class="size-9 shrink-0 rounded-[5px] border border-[#d9d9d9] text-point focus:ring-point md:size-[36px]"
-            />
-            아이디 저장
+          <label class="mb-[30px] mt-3 flex cursor-pointer items-center gap-3 text-[16px] font-semibold text-[#222222]">
+            <input v-model="rememberId" type="checkbox" class="h-[18px] w-[18px] accent-[#ff8744]" />
+            <span>Remember ID</span>
           </label>
 
-          <button
-            type="submit"
-            class="flex h-16 w-full items-center justify-center rounded-[5px] border border-sub bg-[rgba(255,92,4,0.59)] text-lg font-medium text-white transition hover:bg-[rgba(255,92,4,0.72)] md:h-[87px] md:text-[30px]"
-          >
+          <button class="h-[60px] w-full rounded-md bg-[#f39a66] text-[19px] font-bold text-white transition-[background-color,transform] duration-200 hover:bg-[#ef884b] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleLogin">
             로그인
           </button>
-        </form>
 
-        <div
-          class="mt-8 flex flex-wrap items-center justify-center gap-3 text-lg font-medium text-[#aaa] md:mt-10 md:gap-6 md:text-[30px]"
-        >
-          <a href="#" class="no-underline hover:text-neutral-600">회원가입하기</a>
-          <span class="text-neutral-300" aria-hidden="true">|</span>
-          <a href="#" class="no-underline hover:text-neutral-600">비밀번호 찾기</a>
+          <div class="mt-8 flex flex-wrap items-center justify-center gap-[10px] sm:gap-[18px]">
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToSignup">
+              Sign up
+            </button>
+            <span class="text-[18px] text-[#b5b5b5]">|</span>
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToFindPassword">
+              Find password
+            </button>
+          </div>
+
+          <div class="mt-[14px] flex flex-wrap items-center justify-center gap-[10px] sm:gap-[18px]">
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToFindId">
+              Find ID
+            </button>
+          </div>
+
+          <p v-if="errorMessage" class="mt-6 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
+            {{ errorMessage }}
+          </p>
+
+          <p v-if="successMessage" class="mt-6 rounded-lg border border-[#cde9d3] bg-[#eefaf0] px-4 py-[14px] text-[15px] font-semibold text-[#1a7f37]">
+            {{ successMessage }}
+          </p>
+
+          <div class="mt-[52px]">
+            <p class="mb-4 mt-0 text-center text-[22px] font-bold text-[#222222]">Social login</p>
+
+            <button class="mb-[14px] h-[60px] w-full rounded-md bg-[#fee500] text-[19px] font-bold text-[#191919] transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleKakaoLogin">
+              Kakao
+            </button>
+
+            <button class="mb-[14px] h-[60px] w-full rounded-md border border-[#d8d8d8] bg-white text-[19px] font-bold text-[#202124] transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleGoogleLogin">
+              Google
+            </button>
+
+            <button class="mb-[14px] h-[60px] w-full rounded-md bg-[#03c75a] text-[19px] font-bold text-white transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleNaverLogin">
+              Naver
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>

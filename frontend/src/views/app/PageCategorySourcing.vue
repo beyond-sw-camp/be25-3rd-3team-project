@@ -1,8 +1,11 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
-import { mapAutoSourcingToRows, postSourcingAuto } from '../../api/sourcingApi.js'
+import {
+  mapAutoSourcingToRows,
+  postSourcingAuto,
+} from '../../api/sourcingApi.js'
 
 const filters = [
   { title: '브랜드 유형', hint: '브랜드 유형을 선택하세요.' },
@@ -13,32 +16,34 @@ const filters = [
   { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10).' },
 ]
 const months = [
-  '1월',
-  '2월',
-  '3월',
-  '4월',
-  '5월',
-  '6월',
-  '7월',
-  '8월',
-  '9월',
-  '10월',
-  '11월',
-  '12월',
+  '1월', '2월', '3월', '4월', '5월', '6월',
+  '7월', '8월', '9월', '10월', '11월', '12월',
 ]
 
 const selectedMonths = ref([])
 const itemCount = ref(1)
-/** [0]=brand|non-brand, [1]=검색 제한 1|2|3 */
 const filterChoices = ref(['brand', '1'])
-/** 시장 규모 (억, 0~1000) */
 const marketSizeEok = ref(0)
 
+// ── 소싱 검색 상태 ──
 const loading = ref(false)
+const searchElapsed = ref(0)
+let searchTimer = null
+const SLOW_THRESHOLD = 15
+
 const error = ref('')
 const info = ref('')
 const rows = ref([])
 const lastMeta = ref({ at: '', count: 0, elapsed: null })
+
+function startSearchTimer() {
+  searchElapsed.value = 0
+  searchTimer = setInterval(() => { searchElapsed.value++ }, 1000)
+}
+function stopSearchTimer() {
+  if (searchTimer != null) { clearInterval(searchTimer); searchTimer = null }
+}
+onBeforeUnmount(() => { stopSearchTimer() })
 
 const resultSummary = computed(() => {
   const m = lastMeta.value
@@ -47,18 +52,12 @@ const resultSummary = computed(() => {
   return `${m.at} · 결과 ${m.count}건${elapsed}`
 })
 
-function isMonthSelected(m) {
-  return selectedMonths.value.includes(m)
-}
+function isMonthSelected(m) { return selectedMonths.value.includes(m) }
 
 function toggleMonth(m) {
-  const cur = selectedMonths.value
-  const i = cur.indexOf(m)
-  if (i >= 0) {
-    selectedMonths.value = cur.filter((x) => x !== m)
-  } else {
-    selectedMonths.value = [...cur, m]
-  }
+  const i = selectedMonths.value.indexOf(m)
+  if (i >= 0) selectedMonths.value = selectedMonths.value.filter((x) => x !== m)
+  else selectedMonths.value = [...selectedMonths.value, m]
 }
 
 function setFilterRadio(cardIndex, value) {
@@ -89,6 +88,7 @@ function stubLoadCategory() {
   info.value = '저장된 카테고리를 불러오는 API는 추후 연동 예정입니다.'
 }
 
+// ── 소싱 검색 ──
 async function runSearch() {
   error.value = ''
   info.value = ''
@@ -98,6 +98,7 @@ async function runSearch() {
   }
 
   loading.value = true
+  startSearchTimer()
   try {
     const body = {
       seasons: [...selectedMonths.value],
@@ -107,16 +108,14 @@ async function runSearch() {
     const { ok, status, data } = await postSourcingAuto(body)
 
     if (!ok) {
-      const msg =
+      error.value =
         data && typeof data === 'object' && data.message != null
           ? String(data.message)
           : `요청 실패 (${status})`
-      error.value = msg
       rows.value = []
       lastMeta.value = { at: formatNow(), count: 0, elapsed: null }
       return
     }
-
     if (data && data.status === 'error') {
       error.value = data.message != null ? String(data.message) : '소싱 서버 오류'
       rows.value = []
@@ -124,9 +123,7 @@ async function runSearch() {
       return
     }
 
-    const keywords = data?.keywords
-    const results = data?.results
-    const mapped = mapAutoSourcingToRows(keywords, results, body.seasons, body.item_count)
+    const mapped = mapAutoSourcingToRows(data?.keywords, data?.results, body.seasons, body.item_count)
     rows.value = mapped
     lastMeta.value = {
       at: formatNow(),
@@ -137,6 +134,7 @@ async function runSearch() {
     error.value = e instanceof Error ? e.message : '네트워크 오류'
     rows.value = []
   } finally {
+    stopSearchTimer()
     loading.value = false
   }
 }
@@ -149,6 +147,7 @@ function formatNow() {
 
 <template>
   <div>
+    <!-- ═══ 검색 필터 ═══ -->
     <section>
       <BaseSectionTitle>검색 필터</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
@@ -161,121 +160,99 @@ function formatNow() {
           <p class="font-medium text-neutral-900">{{ f.title }}</p>
           <p class="mt-2 text-sm text-neutral-500">{{ f.hint }}</p>
           <div class="mt-4 flex flex-wrap gap-2">
+            <!-- 브랜드 유형 -->
             <template v-if="i === 0">
               <label class="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="f-brand-type"
-                  class="text-point"
-                  value="brand"
-                  :checked="filterChoices[0] === 'brand'"
-                  @change="setFilterRadio(0, 'brand')"
-                />
+                <input type="radio" name="f-brand" class="text-point" value="brand"
+                  :checked="filterChoices[0] === 'brand'" @change="setFilterRadio(0, 'brand')" />
                 브랜드
               </label>
               <label class="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  name="f-brand-type"
-                  class="text-point"
-                  value="non-brand"
-                  :checked="filterChoices[0] === 'non-brand'"
-                  @change="setFilterRadio(0, 'non-brand')"
-                />
+                <input type="radio" name="f-brand" class="text-point" value="non-brand"
+                  :checked="filterChoices[0] === 'non-brand'" @change="setFilterRadio(0, 'non-brand')" />
                 미 브랜드
               </label>
             </template>
+            <!-- 시장 규모 슬라이더 -->
             <template v-else-if="i === 1">
               <div class="w-full space-y-3 pt-1">
-                <input
-                  v-model.number="marketSizeEok"
-                  type="range"
-                  min="0"
-                  max="1000"
-                  step="1"
-                  class="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-point"
-                />
+                <input v-model.number="marketSizeEok" type="range" min="0" max="1000" step="1"
+                  class="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-point" />
                 <div class="flex items-center justify-between gap-2 text-xs text-neutral-500">
                   <span>0억</span>
-                  <span class="text-base font-semibold tabular-nums text-point"
-                    >{{ marketSizeEok }}억</span
-                  >
+                  <span class="text-base font-semibold tabular-nums text-point">{{ marketSizeEok }}억</span>
                   <span>1000억</span>
                 </div>
               </div>
             </template>
+            <!-- 검색 제한 -->
             <template v-else-if="i === 2">
-              <label
-                v-for="opt in ['1', '2', '3']"
-                :key="opt"
-                class="flex items-center gap-2 text-sm"
-              >
-                <input
-                  type="radio"
-                  :name="`f-${i}`"
-                  class="text-point"
-                  :value="opt"
-                  :checked="filterChoices[1] === opt"
-                  @change="setFilterRadio(i, opt)"
-                />
+              <label v-for="opt in ['1', '2', '3']" :key="opt" class="flex items-center gap-2 text-sm">
+                <input type="radio" :name="`f-${i}`" class="text-point" :value="opt"
+                  :checked="filterChoices[1] === opt" @change="setFilterRadio(i, opt)" />
                 {{ opt }}개
               </label>
             </template>
           </div>
         </div>
       </div>
+
       <p class="mt-4 text-xs text-neutral-500">
         소싱 API는 계절(월)·시즌당 개수만 사용합니다. 브랜드 유형·시장 규모는 UI만 유지됩니다.
       </p>
+
+      <!-- 월 선택 -->
       <div class="mt-6 flex flex-wrap gap-2">
         <button
-          v-for="m in months"
-          :key="m"
-          type="button"
+          v-for="m in months" :key="m" type="button"
           class="inline-flex items-center gap-2 rounded border px-3 py-1 text-sm transition-colors"
-          :class="
-            isMonthSelected(m)
-              ? 'border-point bg-point/10 text-point'
-              : 'border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50'
-          "
+          :class="isMonthSelected(m)
+            ? 'border-point bg-point/10 text-point'
+            : 'border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50'"
           @click="toggleMonth(m)"
         >
-          <span
-            class="size-2 rounded-full"
-            :class="isMonthSelected(m) ? 'bg-point' : 'bg-point/30'"
-          />
+          <span class="size-2 rounded-full" :class="isMonthSelected(m) ? 'bg-point' : 'bg-point/30'" />
           {{ m }}
         </button>
       </div>
+
+      <!-- 액션 버튼 -->
       <div class="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
+        <button type="button" :disabled="loading"
           class="rounded border border-point bg-point/10 px-4 py-2 text-sm text-point hover:bg-point/20 disabled:opacity-50"
-          :disabled="loading"
-          @click="runSearch"
-        >
+          @click="runSearch">
           {{ loading ? '검색 중…' : '검색하기' }}
         </button>
-        <button
-          type="button"
-          class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
-          :disabled="loading"
-          @click="resetFilters"
-        >
+        <button type="button" :disabled="loading"
+          class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
+          @click="resetFilters">
           필터 초기화
         </button>
-        <button
-          type="button"
-          class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
-          @click="stubLoadCategory"
-        >
+        <button type="button" :disabled="loading"
+          class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
+          @click="stubLoadCategory">
           카테고리 불러오기
         </button>
       </div>
-      <p v-if="error" class="mt-3 text-sm text-red-600">{{ error }}</p>
-      <p v-if="info" class="mt-3 text-sm text-neutral-600">{{ info }}</p>
+
+      <!-- ── 소싱 로딩 바 ── -->
+      <div v-if="loading" class="mt-4 space-y-2">
+        <div class="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+          <div class="loading-bar h-full rounded-full bg-point" />
+        </div>
+        <p class="text-sm text-neutral-600">
+          소싱 진행 중… <span class="font-medium tabular-nums">{{ searchElapsed }}초</span> 경과
+        </p>
+        <p v-if="searchElapsed >= SLOW_THRESHOLD" class="text-sm text-amber-600">
+          상품의 옵션이 많은 경우 소싱하는 데 2~10분 정도 걸릴 수도 있습니다.
+        </p>
+      </div>
+
+      <p v-if="error" class="mt-3 whitespace-pre-line text-sm text-red-600">{{ error }}</p>
+      <p v-if="info" class="mt-3 whitespace-pre-line text-sm text-neutral-600">{{ info }}</p>
     </section>
 
+    <!-- ═══ 검색 결과 ═══ -->
     <section class="mt-10">
       <BaseSectionTitle>검색 결과</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
@@ -317,6 +294,8 @@ function formatNow() {
           </tbody>
         </table>
       </div>
+
+      <!-- 하단 버튼 -->
       <div class="mt-4 flex flex-wrap gap-2">
         <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
           표 상태 저장
@@ -324,16 +303,22 @@ function formatNow() {
         <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
           표 상태 초기화
         </button>
-        <button
-          type="button"
-          class="rounded border border-point bg-point/10 px-3 py-1.5 text-xs text-point"
-        >
-          선택한 키워드 저장
-        </button>
         <button type="button" class="rounded border border-neutral-300 px-3 py-1.5 text-xs">
           현재 결과 액셀 저장
         </button>
       </div>
+
     </section>
   </div>
 </template>
+
+<style scoped>
+.loading-bar {
+  width: 40%;
+  animation: slide 1.4s ease-in-out infinite;
+}
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+</style>
