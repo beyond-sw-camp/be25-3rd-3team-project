@@ -25,7 +25,8 @@ async function pingApi() {
   <section class="page">
     <h1>시작하기</h1>
     <p class="lead">
-      Vite 개발 서버가 프록시로 백엔드에 요청을 넘깁니다. 백엔드에 <code>/api/health</code> 같은 엔드포인트를 두면 아래 버튼으로 연동을 확인할 수 있습니다.
+      Vite 개발 서버가 프록시로 백엔드에 요청을 넘깁니다. 백엔드에 <code>/api/health</code> 같은
+      엔드포인트를 두면 아래 버튼으로 연동을 확인할 수 있습니다.
     </p>
     <div class="actions">
       <button type="button" class="btn" :disabled="loading" @click="pingApi">

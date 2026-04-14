@@ -12,6 +12,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       proxy: {
+        '/api': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+        '/sourcing': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
         '/gateway': {
           target: apiProxyTarget,
           changeOrigin: true,
