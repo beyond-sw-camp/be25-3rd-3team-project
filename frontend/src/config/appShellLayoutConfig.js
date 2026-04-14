@@ -7,7 +7,6 @@
  */
 
 export const sidebarNav = [
-  { type: 'head_link', label: '대시보드', to: '/app/dashboard', icon: 'dashboard' },
   { type: 'heading', label: '상품소싱', icon: 'sourcing', firstChildTo: '/app/sourcing/category' },
   { type: 'link', label: '카테고리 소싱', to: '/app/sourcing/category', parentLabel: '상품소싱' },
   {

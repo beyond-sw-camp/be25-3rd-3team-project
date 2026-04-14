@@ -21,11 +21,6 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/app/sourcing/category' },
         {
-          path: 'dashboard',
-          name: 'app-dashboard',
-          component: () => import('../views/app/DashboardStubView.vue'),
-        },
-        {
           path: 'sourcing/category',
           name: 'app-category-sourcing',
           component: () => import('../views/app/PageCategorySourcing.vue'),
