@@ -4,8 +4,8 @@ import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  // .env.development 등에 API_PROXY_TARGET=http://localhost:8080 형태로 지정 가능
-  const apiTarget = env.API_PROXY_TARGET || 'http://localhost:8080'
+  // API Gateway (기본 9000). .env.development 에서 덮어쓰기 가능.
+  const gwTarget = env.API_PROXY_TARGET || 'http://localhost:9000'
 
   return {
     plugins: [vue()],
@@ -13,7 +13,11 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: apiTarget,
+          target: gwTarget,
+          changeOrigin: true,
+        },
+        '/sourcing': {
+          target: gwTarget,
           changeOrigin: true,
         },
       },

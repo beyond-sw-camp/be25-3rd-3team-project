@@ -6,12 +6,15 @@ import { RouterLink } from 'vue-router'
   <header class="app-header">
     <RouterLink to="/" class="brand">3팀 프론트</RouterLink>
     <nav class="nav">
-      <RouterLink to="/" class="nav-link" active-class="nav-link--active" exact-active-class="nav-link--active">
+      <RouterLink
+        to="/"
+        class="nav-link"
+        active-class="nav-link--active"
+        exact-active-class="nav-link--active"
+      >
         홈
       </RouterLink>
-      <RouterLink to="/about" class="nav-link" active-class="nav-link--active">
-        소개
-      </RouterLink>
+      <RouterLink to="/about" class="nav-link" active-class="nav-link--active"> 소개 </RouterLink>
     </nav>
   </header>
 </template>
@@ -49,7 +52,9 @@ import { RouterLink } from 'vue-router'
   color: var(--text);
   text-decoration: none;
   font-size: 0.95rem;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .nav-link:hover {

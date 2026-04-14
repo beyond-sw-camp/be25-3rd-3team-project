@@ -1,12 +1,15 @@
 <script setup>
+import { computed, ref } from 'vue'
+
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
+import { mapAutoSourcingToRows, postSourcingAuto } from '../../api/sourcingApi.js'
 
 const filters = [
   { title: '브랜드 유형', hint: '브랜드 유형을 선택하세요.' },
   { title: '검색어 유형', hint: '검색어 유형을 선택하세요.' },
   { title: '시장 규모', hint: '시장 규모를 선택하세요.' },
   { title: '계절성', hint: '많이 팔리는 달을 선택하세요.' },
-  { title: '검색 제한', hint: '최대 검색양을 선택하세요.' },
+  { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10).' },
 ]
 const months = [
   '1월',
@@ -22,6 +25,118 @@ const months = [
   '11월',
   '12월',
 ]
+
+const selectedMonths = ref([])
+const itemCount = ref(1)
+const filterChoices = ref(['A', 'A', 'A', 'A', '1'])
+
+const loading = ref(false)
+const error = ref('')
+const info = ref('')
+const rows = ref([])
+const lastMeta = ref({ at: '', count: 0, elapsed: null })
+
+const resultSummary = computed(() => {
+  const m = lastMeta.value
+  if (!m.at && rows.value.length === 0) return '검색하기를 눌러 소싱을 실행하세요.'
+  const elapsed = m.elapsed != null ? ` · 소요 ${m.elapsed}초` : ''
+  return `${m.at} · 결과 ${m.count}건${elapsed}`
+})
+
+function isMonthSelected(m) {
+  return selectedMonths.value.includes(m)
+}
+
+function toggleMonth(m) {
+  const cur = selectedMonths.value
+  const i = cur.indexOf(m)
+  if (i >= 0) {
+    selectedMonths.value = cur.filter((x) => x !== m)
+  } else {
+    selectedMonths.value = [...cur, m]
+  }
+}
+
+function setFilterRadio(filterIndex, value) {
+  const next = [...filterChoices.value]
+  next[filterIndex] = value
+  filterChoices.value = next
+  if (filterIndex === 4) {
+    const n = Number(value)
+    if (!Number.isNaN(n)) itemCount.value = Math.min(10, Math.max(1, n))
+  }
+}
+
+function resetFilters() {
+  selectedMonths.value = []
+  itemCount.value = 1
+  filterChoices.value = ['A', 'A', 'A', 'A', '1']
+  rows.value = []
+  error.value = ''
+  info.value = ''
+  lastMeta.value = { at: '', count: 0, elapsed: null }
+}
+
+function stubLoadCategory() {
+  info.value = '저장된 카테고리를 불러오는 API는 추후 연동 예정입니다.'
+}
+
+async function runSearch() {
+  error.value = ''
+  info.value = ''
+  if (selectedMonths.value.length === 0) {
+    error.value = '계절성으로 쓸 달을 하나 이상 선택하세요.'
+    return
+  }
+
+  loading.value = true
+  try {
+    const body = {
+      seasons: [...selectedMonths.value],
+      banned_words: [],
+      item_count: itemCount.value,
+    }
+    const { ok, status, data } = await postSourcingAuto(body)
+
+    if (!ok) {
+      const msg =
+        data && typeof data === 'object' && data.message != null
+          ? String(data.message)
+          : `요청 실패 (${status})`
+      error.value = msg
+      rows.value = []
+      lastMeta.value = { at: formatNow(), count: 0, elapsed: null }
+      return
+    }
+
+    if (data && data.status === 'error') {
+      error.value = data.message != null ? String(data.message) : '소싱 서버 오류'
+      rows.value = []
+      lastMeta.value = { at: formatNow(), count: 0, elapsed: null }
+      return
+    }
+
+    const keywords = data?.keywords
+    const results = data?.results
+    const mapped = mapAutoSourcingToRows(keywords, results, body.seasons, body.item_count)
+    rows.value = mapped
+    lastMeta.value = {
+      at: formatNow(),
+      count: mapped.length,
+      elapsed: data?.elapsed != null ? data.elapsed : null,
+    }
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : '네트워크 오류'
+    rows.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+function formatNow() {
+  const d = new Date()
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} 기준`
+}
 </script>
 
 <template>
@@ -38,49 +153,95 @@ const months = [
           <p class="font-medium text-neutral-900">{{ f.title }}</p>
           <p class="mt-2 text-sm text-neutral-500">{{ f.hint }}</p>
           <div class="mt-4 flex flex-wrap gap-2">
-            <label v-for="m in ['A', 'B', 'C']" :key="m" class="flex items-center gap-2 text-sm">
-              <input type="radio" :name="`f-${i}`" class="text-point" />
-              {{ m }}형
-            </label>
+            <template v-if="i === 4">
+              <label
+                v-for="opt in ['1', '2', '3']"
+                :key="opt"
+                class="flex items-center gap-2 text-sm"
+              >
+                <input
+                  type="radio"
+                  :name="`f-${i}`"
+                  class="text-point"
+                  :value="opt"
+                  :checked="filterChoices[i] === opt"
+                  @change="setFilterRadio(i, opt)"
+                />
+                {{ opt }}개
+              </label>
+            </template>
+            <template v-else>
+              <label v-for="m in ['A', 'B', 'C']" :key="m" class="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  :name="`f-${i}`"
+                  class="text-point"
+                  :value="m"
+                  :checked="filterChoices[i] === m"
+                  @change="setFilterRadio(i, m)"
+                />
+                {{ m }}형
+              </label>
+            </template>
           </div>
         </div>
       </div>
+      <p class="mt-4 text-xs text-neutral-500">
+        소싱 API는 계절(월)·시즌당 개수만 사용합니다. 나머지 필터는 UI만 유지됩니다.
+      </p>
       <div class="mt-6 flex flex-wrap gap-2">
-        <span
+        <button
           v-for="m in months"
           :key="m"
-          class="inline-flex items-center gap-2 rounded border border-neutral-200 bg-white px-3 py-1 text-sm"
+          type="button"
+          class="inline-flex items-center gap-2 rounded border px-3 py-1 text-sm transition-colors"
+          :class="
+            isMonthSelected(m)
+              ? 'border-point bg-point/10 text-point'
+              : 'border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50'
+          "
+          @click="toggleMonth(m)"
         >
-          <span class="size-2 rounded-full bg-point/60" />
+          <span
+            class="size-2 rounded-full"
+            :class="isMonthSelected(m) ? 'bg-point' : 'bg-point/30'"
+          />
           {{ m }}
-        </span>
+        </button>
       </div>
       <div class="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
+          class="rounded border border-point bg-point/10 px-4 py-2 text-sm text-point hover:bg-point/20 disabled:opacity-50"
+          :disabled="loading"
+          @click="runSearch"
         >
-          검색하기
+          {{ loading ? '검색 중…' : '검색하기' }}
         </button>
         <button
           type="button"
           class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
+          :disabled="loading"
+          @click="resetFilters"
         >
           필터 초기화
         </button>
         <button
           type="button"
           class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
+          @click="stubLoadCategory"
         >
           카테고리 불러오기
         </button>
       </div>
+      <p v-if="error" class="mt-3 text-sm text-red-600">{{ error }}</p>
+      <p v-if="info" class="mt-3 text-sm text-neutral-600">{{ info }}</p>
     </section>
 
     <section class="mt-10">
       <BaseSectionTitle>검색 결과</BaseSectionTitle>
       <div class="mt-3 h-px bg-neutral-200" />
-      <p class="mt-4 text-sm text-neutral-600">2026년 2월 14일 기준 · 검색 완료 : 500 개</p>
+      <p class="mt-4 text-sm text-neutral-600">{{ resultSummary }}</p>
       <div class="mt-4 overflow-x-auto rounded-lg border border-neutral-200 bg-white">
         <table class="min-w-[900px] w-full text-left text-sm">
           <thead class="border-b border-neutral-200 bg-neutral-50 text-xs text-neutral-600">
@@ -98,17 +259,22 @@ const months = [
             </tr>
           </thead>
           <tbody>
-            <tr v-for="k in 5" :key="k" class="border-b border-neutral-100">
-              <td class="px-3 py-3 font-medium">샘플키워드{{ k }}</td>
-              <td class="px-3 py-3 text-neutral-600">브랜드</td>
-              <td class="px-3 py-3 text-neutral-600">—</td>
-              <td class="px-3 py-3 text-point">상승</td>
-              <td class="px-3 py-3">12,400</td>
-              <td class="px-3 py-3">98,200</td>
-              <td class="px-3 py-3">중</td>
-              <td class="px-3 py-3 font-semibold text-point">82</td>
-              <td class="px-3 py-3">봄</td>
-              <td class="px-3 py-3 text-neutral-500">+4.2%</td>
+            <tr v-if="!loading && rows.length === 0">
+              <td colspan="10" class="px-3 py-8 text-center text-neutral-500">
+                결과가 없습니다. 달을 선택한 뒤 검색하기를 실행하세요.
+              </td>
+            </tr>
+            <tr v-for="(row, idx) in rows" :key="idx" class="border-b border-neutral-100">
+              <td class="px-3 py-3 font-medium">{{ row.keyword }}</td>
+              <td class="px-3 py-3 text-neutral-600">{{ row.type }}</td>
+              <td class="px-3 py-3 text-neutral-600">{{ row.brand }}</td>
+              <td class="px-3 py-3 text-point">{{ row.trend }}</td>
+              <td class="px-3 py-3">{{ row.vol30 }}</td>
+              <td class="px-3 py-3">{{ row.volYtd }}</td>
+              <td class="px-3 py-3">{{ row.competition }}</td>
+              <td class="px-3 py-3 font-semibold text-point">{{ row.score }}</td>
+              <td class="px-3 py-3">{{ row.seasonality }}</td>
+              <td class="px-3 py-3 text-neutral-500">{{ row.trendY }}</td>
             </tr>
           </tbody>
         </table>
