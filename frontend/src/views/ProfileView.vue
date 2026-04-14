@@ -1,455 +1,120 @@
-<script setup>
-import { ref } from 'vue'
+﻿<script setup>
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios'
 
 const router = useRouter()
 
 const username = ref('')
+const nickname = ref('')
 const email = ref('')
+const error = ref('')
 
-const errorMessage = ref('')
-const successMessage = ref('')
-
-const goToLogin = () => {
-  router.push('/login')
-}
-
-const goToFindId = () => {
-  router.push('/find-id')
-}
-
-const handleResetPassword = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  if (!username.value.trim()) {
-    errorMessage.value = '아이디를 입력해줘.'
-    return
-  }
-
-  if (!email.value.trim()) {
-    errorMessage.value = '이메일을 입력해줘.'
-    return
-  }
+onMounted(async () => {
+  error.value = ''
 
   try {
-    const params = new URLSearchParams()
-    params.append('username', username.value)
-    params.append('email', email.value)
-
-    const response = await api.post('/users/reset-pw', params, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-
-    console.log('비밀번호 찾기 응답:', response)
-
-    const html = typeof response.data === 'string' ? response.data : ''
-
-    // 성공 문구가 있을 때만 성공 처리
-    if (html.includes('임시 비밀번호가 이메일로 발송되었습니다.')) {
-      successMessage.value = '임시 비밀번호가 이메일로 발송됐어.'
-      return
-    }
-
-    // 그 외는 실패로 처리
-    errorMessage.value = '아이디와 이메일 정보를 다시 확인해줘.'
+    const response = await api.get('/users/me')
+    username.value = response.data.username
+    nickname.value = response.data.nickname
+    email.value = response.data.email
   } catch (err) {
-    console.error('비밀번호 찾기 실패:', err)
-
     if (err.response) {
-      errorMessage.value = `비밀번호 찾기 실패 / status: ${err.response.status}`
+      error.value = `정보 조회 실패 / status: ${err.response.status}`
     } else {
-      errorMessage.value = '서버 연결 실패'
+      error.value = '서버 연결 실패'
     }
+  }
+})
+
+const goToHome = () => {
+  router.push('/')
+}
+
+const goToProfileInfo = () => {
+  router.push('/profile/info')
+}
+
+const goToProfileEdit = () => {
+  router.push('/profile/edit')
+}
+
+const goToProfileDelete = () => {
+  router.push('/profile/delete')
+}
+
+const handleLogout = async () => {
+  try {
+    await api.post('/users/logout')
+    alert('로그아웃되었습니다.')
+    router.push('/login')
+  } catch (err) {
+    alert('로그아웃 실패')
   }
 }
 </script>
 
 <template>
-  <div class="findpw-page">
-    <div class="findpw-shell">
-      <section class="brand-panel">
-        <div class="brand-shape brand-cube"></div>
-        <div class="brand-shape brand-paper"></div>
-        <div class="brand-shape brand-line"></div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1280px] overflow-hidden bg-[#f3f3f3] max-[1080px]:min-h-0 max-[1080px]:max-w-[760px] max-[1080px]:grid-cols-1 sm:min-h-[760px] md:grid-cols-[1fr_1.05fr]">
+      <section class="relative flex min-h-[250px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[1080px]:min-h-[320px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
 
-        <div class="brand-content">
-          <h1 class="brand-copy">
-            임시 비밀번호를<br />
-            발급받고<br />
-            다시 로그인하세요
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[32px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[1080px]:text-[40px] sm:text-[56px]">
+            마이페이지<br />
+            계정을<br />
+            관리하세요
           </h1>
 
-          <p class="brand-sub">
+          <p class="mt-[58px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
             Sourcing Automation System<br />
             - AutoSource
           </p>
         </div>
       </section>
 
-      <section class="form-panel">
-        <div class="form-wrap">
-          <h2 class="service-title">비밀번호 찾기</h2>
-          <p class="form-intro">
-            가입한 아이디와 이메일을 입력하면 임시 비밀번호를 발급해줘.
-          </p>
-
-          <div class="form-group">
-            <label class="input-label">아이디</label>
-            <input
-                v-model="username"
-                type="text"
-                class="text-input"
-                placeholder="아이디를 입력하세요."
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="input-label">이메일</label>
-            <input
-                v-model="email"
-                type="email"
-                class="text-input"
-                placeholder="이메일을 입력하세요."
-                @keyup.enter="handleResetPassword"
-            />
-          </div>
-
-          <button class="primary-btn" @click="handleResetPassword">
-            비밀번호 찾기
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[1080px]:px-[22px] max-[1080px]:pb-11 max-[1080px]:pt-[34px] sm:px-10 sm:py-[46px]">
+        <div class="w-full max-w-[620px]">
+          <button class="mb-[18px] rounded-md border border-[#d8d8d8] bg-white px-[18px] py-3 text-[15px] font-bold text-[#444444]" @click="goToHome">
+            ← 홈으로
           </button>
 
-          <div class="sub-links">
-            <button class="text-link-btn" @click="goToLogin">
-              로그인으로
-            </button>
-            <span class="divider">|</span>
-            <button class="text-link-btn" @click="goToFindId">
-              아이디 찾기
-            </button>
+          <p class="mb-2 mt-0 text-[14px] font-bold tracking-[0.4px] text-[#ff6b1a]">MY PAGE</p>
+          <h2 class="m-0 text-[32px] font-extrabold leading-[1.1] tracking-[-1px] text-[#101010] max-[1080px]:text-[38px] sm:text-[48px]">
+            마이페이지
+          </h2>
+          <p class="mb-7 mt-[10px] text-[17px] font-medium text-[#7a7a7a]">{{ nickname || username }}님, 무엇을 하시겠어요?</p>
+
+          <div v-if="error" class="mb-4 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
+            {{ error }}
           </div>
 
-          <p v-if="errorMessage" class="message error-message">
-            {{ errorMessage }}
-          </p>
+          <div class="grid grid-cols-1 gap-4 min-[721px]:grid-cols-2">
+            <button class="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#e2e2e2] bg-white px-6 py-8 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ff8744]" @click="goToProfileInfo">
+              <span class="text-[24px] font-extrabold text-[#ff6b1a]">01</span>
+              <span class="text-[16px] font-bold text-[#222222]">내 정보 조회</span>
+            </button>
 
-          <p v-if="successMessage" class="message success-message">
-            {{ successMessage }}
-          </p>
+            <button class="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#e2e2e2] bg-white px-6 py-8 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ff8744]" @click="goToProfileEdit">
+              <span class="text-[24px] font-extrabold text-[#ff6b1a]">02</span>
+              <span class="text-[16px] font-bold text-[#222222]">정보 수정</span>
+            </button>
+
+            <button class="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#e2e2e2] bg-[#f7f7f7] px-6 py-8 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ff8744]" @click="handleLogout">
+              <span class="text-[24px] font-extrabold text-[#ff6b1a]">03</span>
+              <span class="text-[16px] font-bold text-[#222222]">로그아웃</span>
+            </button>
+
+            <button class="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#fecaca] bg-[#fef2f2] px-6 py-8 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#f87171]" @click="goToProfileDelete">
+              <span class="text-[24px] font-extrabold text-[#dc2626]">04</span>
+              <span class="text-[16px] font-bold text-[#b91c1c]">회원 탈퇴</span>
+            </button>
+          </div>
         </div>
       </section>
     </div>
   </div>
 </template>
-
-<style scoped>
-.findpw-page {
-  min-height: 100vh;
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.findpw-shell {
-  width: 100%;
-  max-width: 1180px;
-  min-height: 760px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-
-.brand-panel {
-  position: relative;
-  background: #ff8744;
-  padding: 54px 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-}
-
-.brand-copy {
-  margin: 0;
-  color: #ffffff;
-  font-size: 56px;
-  line-height: 1.14;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  word-break: keep-all;
-}
-
-.brand-sub {
-  margin-top: 120px;
-  color: #fff7f2;
-  font-size: 18px;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.brand-shape {
-  position: absolute;
-  opacity: 0.32;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.brand-cube {
-  top: 18px;
-  right: 92px;
-  width: 220px;
-  height: 160px;
-  border: 4px solid rgba(255, 234, 222, 0.8);
-  border-radius: 28px;
-  transform: rotate(-32deg);
-}
-
-.brand-paper {
-  right: -30px;
-  bottom: 120px;
-  width: 230px;
-  height: 230px;
-  border: 4px solid rgba(255, 234, 222, 0.7);
-  border-radius: 28px;
-  transform: rotate(28deg) skew(-8deg, -8deg);
-}
-
-.brand-line {
-  left: -20px;
-  bottom: 26px;
-  width: 180px;
-  height: 70px;
-  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
-  border-left: 5px solid transparent;
-  border-radius: 10px;
-}
-
-.form-panel {
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 54px 46px;
-}
-
-.form-wrap {
-  width: 100%;
-  max-width: 460px;
-}
-
-.service-title {
-  margin: 0;
-  color: #101010;
-  font-size: 50px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.form-intro {
-  margin: 10px 0 32px 0;
-  color: #7a7a7a;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.form-group {
-  margin-bottom: 22px;
-}
-
-.input-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #222222;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.text-input {
-  width: 100%;
-  height: 72px;
-  padding: 0 22px;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  background: #f7f7f7;
-  color: #222222;
-  font-size: 20px;
-  outline: none;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.text-input::placeholder {
-  color: #b3b3b3;
-  font-size: 20px;
-}
-
-.text-input:focus {
-  border-color: #ff8744;
-  background: #ffffff;
-}
-
-.primary-btn {
-  width: 100%;
-  height: 66px;
-  border: none;
-  border-radius: 6px;
-  background: #f39a66;
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.18s ease, transform 0.12s ease;
-}
-
-.primary-btn:hover {
-  background: #ef884b;
-}
-
-.primary-btn:active {
-  transform: translateY(1px);
-}
-
-.sub-links {
-  margin-top: 28px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.text-link-btn {
-  background: transparent;
-  border: none;
-  color: #9d9d9d;
-  font-size: 19px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-}
-
-.text-link-btn:hover {
-  color: #555555;
-}
-
-.divider {
-  color: #b5b5b5;
-  font-size: 18px;
-}
-
-.message {
-  margin-top: 24px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fff0f0;
-  border: 1px solid #ffcccc;
-  color: #d93025;
-}
-
-.success-message {
-  background: #eefaf0;
-  border: 1px solid #cde9d3;
-  color: #1a7f37;
-}
-
-@media (max-width: 980px) {
-  .findpw-shell {
-    grid-template-columns: 1fr;
-    max-width: 700px;
-    min-height: auto;
-  }
-
-  .brand-panel {
-    min-height: 340px;
-    padding: 38px 28px;
-  }
-
-  .brand-copy {
-    font-size: 40px;
-  }
-
-  .brand-sub {
-    margin-top: 60px;
-    font-size: 15px;
-  }
-
-  .form-panel {
-    padding: 38px 24px 48px 24px;
-  }
-
-  .service-title {
-    font-size: 38px;
-  }
-
-  .text-input {
-    height: 64px;
-    font-size: 18px;
-  }
-
-  .text-input::placeholder {
-    font-size: 18px;
-  }
-
-  .primary-btn {
-    height: 60px;
-    font-size: 19px;
-  }
-
-  .text-link-btn {
-    font-size: 17px;
-  }
-}
-
-@media (max-width: 640px) {
-  .findpw-page {
-    padding: 0;
-  }
-
-  .findpw-shell {
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    min-height: 280px;
-  }
-
-  .brand-copy {
-    font-size: 32px;
-  }
-
-  .service-title {
-    font-size: 34px;
-  }
-
-  .form-panel {
-    padding: 28px 18px 40px 18px;
-  }
-
-  .sub-links {
-    gap: 10px;
-  }
-
-  .text-link-btn {
-    font-size: 15px;
-  }
-}
-</style>

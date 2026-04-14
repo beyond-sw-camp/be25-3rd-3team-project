@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios'
@@ -6,6 +6,7 @@ import api from '../api/axios'
 const router = useRouter()
 
 const password = ref('')
+const confirmText = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
 
@@ -22,17 +23,24 @@ const handleDelete = async () => {
     return
   }
 
+  if (confirmText.value !== '탈퇴합니다') {
+    errorMessage.value = '확인 문구를 정확히 입력해줘.'
+    return
+  }
+
+  if (!confirm('정말 탈퇴할 거야? 이 작업은 되돌릴 수 없어.')) {
+    return
+  }
+
   try {
     const params = new URLSearchParams()
     params.append('password', password.value)
 
     const response = await api.post('/users/delete', params, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     })
-
-    console.log('회원 탈퇴 응답:', response)
 
     const finalUrl = response?.request?.responseURL || ''
 
@@ -49,8 +57,6 @@ const handleDelete = async () => {
       router.push('/login')
     }, 800)
   } catch (err) {
-    console.error('회원 탈퇴 실패:', err)
-
     if (err.response) {
       errorMessage.value = `회원 탈퇴 실패 / status: ${err.response.status}`
     } else {
@@ -61,68 +67,71 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div class="delete-page">
-    <div class="delete-shell">
-      <section class="brand-panel">
-        <div class="brand-shape brand-cube"></div>
-        <div class="brand-shape brand-paper"></div>
-        <div class="brand-shape brand-line"></div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1280px] overflow-hidden bg-[#f3f3f3] max-[1080px]:min-h-0 max-[1080px]:max-w-[760px] max-[1080px]:grid-cols-1 sm:min-h-[760px] md:grid-cols-[1fr_1.05fr]">
+      <section class="relative flex min-h-[250px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[1080px]:min-h-[320px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
 
-        <div class="brand-content">
-          <h1 class="brand-copy">
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[32px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[1080px]:text-[40px] sm:text-[56px]">
             계정 탈퇴는<br />
             신중하게<br />
             결정하세요
           </h1>
 
-          <p class="brand-sub">
+          <p class="mt-[58px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
             Sourcing Automation System<br />
             - AutoSource
           </p>
         </div>
       </section>
 
-      <section class="content-panel">
-        <div class="content-wrap">
-          <button class="back-btn" @click="goBack">
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[1080px]:px-[22px] max-[1080px]:pb-11 max-[1080px]:pt-[34px] sm:px-10 sm:py-[46px]">
+        <div class="w-full max-w-[620px]">
+          <button class="mb-[18px] rounded-md border border-[#d8d8d8] bg-white px-[18px] py-3 text-[15px] font-bold text-[#444444]" @click="goBack">
             ← 마이페이지로
           </button>
 
-          <p class="page-kicker danger-kicker">DANGER ZONE</p>
-          <h2 class="page-title danger-title">회원 탈퇴</h2>
-          <p class="page-desc">
+          <p class="mb-2 mt-0 text-[14px] font-bold tracking-[0.4px] text-[#dc2626]">DANGER ZONE</p>
+          <h2 class="m-0 text-[32px] font-extrabold leading-[1.1] tracking-[-1px] text-[#7f1d1d] max-[1080px]:text-[38px] sm:text-[46px]">
+            회원 탈퇴
+          </h2>
+          <p class="mb-5 mt-[10px] text-[17px] font-medium text-[#7a7a7a]">
             탈퇴하면 계정과 관련된 모든 데이터가 삭제되고, 되돌릴 수 없어.
           </p>
 
-          <div class="warning-box">
-            정말 탈퇴할 거면 현재 비밀번호를 입력해줘.
+          <div class="mb-[18px] rounded-[10px] border border-[#fed7aa] bg-[#fff7ed] px-[18px] py-4 text-[14px] font-semibold text-[#9a3412]">
+            <strong>주의:</strong> 탈퇴 후에는 모든 데이터가 영구 삭제되며 복구할 수 없어.
           </div>
 
-          <div class="form-card">
-            <div class="form-group">
-              <label class="input-label">비밀번호 확인</label>
-              <input
-                  v-model="password"
-                  type="password"
-                  class="text-input"
-                  placeholder="현재 비밀번호를 입력해줘"
-              />
+          <div class="rounded-[10px] border border-[#e2e2e2] bg-white p-[22px]">
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">현재 비밀번호</label>
+              <input v-model="password" type="password" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none focus:border-[#ff8744] focus:bg-white" placeholder="현재 비밀번호를 입력해줘" />
             </div>
 
-            <div v-if="errorMessage" class="message error-message">
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">확인 문구 입력</label>
+              <input v-model="confirmText" type="text" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none focus:border-[#ff8744] focus:bg-white" placeholder="'탈퇴합니다'를 입력하세요." />
+              <span class="mt-1 block text-[12px] text-[#999999]">안전을 위해 '탈퇴합니다'라고 입력해줘.</span>
+            </div>
+
+            <div v-if="errorMessage" class="mb-4 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
               {{ errorMessage }}
             </div>
 
-            <div v-if="successMessage" class="message success-message">
+            <div v-if="successMessage" class="mb-4 rounded-lg border border-[#cde9d3] bg-[#eefaf0] px-4 py-[14px] text-[15px] font-semibold text-[#1a7f37]">
               {{ successMessage }}
             </div>
 
-            <div class="action-row">
-              <button class="danger-btn" @click="handleDelete">
+            <div class="mt-5 flex flex-col gap-3 min-[721px]:flex-row">
+              <button class="h-[62px] flex-1 rounded-md bg-[#dc2626] text-[18px] font-bold text-white hover:bg-[#b91c1c]" @click="handleDelete">
                 탈퇴하기
               </button>
 
-              <button class="secondary-btn" @click="goBack">
+              <button class="h-[62px] flex-1 rounded-md border border-[#d8d8d8] bg-white text-[18px] font-bold text-[#444444]" @click="goBack">
                 취소
               </button>
             </div>
@@ -132,302 +141,3 @@ const handleDelete = async () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.delete-page {
-  min-height: 100vh;
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.delete-shell {
-  width: 100%;
-  max-width: 1280px;
-  min-height: 760px;
-  display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-
-.brand-panel {
-  position: relative;
-  background: #ff8744;
-  padding: 54px 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-}
-
-.brand-copy {
-  margin: 0;
-  color: #ffffff;
-  font-size: 56px;
-  line-height: 1.14;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  word-break: keep-all;
-}
-
-.brand-sub {
-  margin-top: 120px;
-  color: #fff7f2;
-  font-size: 18px;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.brand-shape {
-  position: absolute;
-  opacity: 0.32;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.brand-cube {
-  top: 18px;
-  right: 92px;
-  width: 220px;
-  height: 160px;
-  border: 4px solid rgba(255, 234, 222, 0.8);
-  border-radius: 28px;
-  transform: rotate(-32deg);
-}
-
-.brand-paper {
-  right: -30px;
-  bottom: 120px;
-  width: 230px;
-  height: 230px;
-  border: 4px solid rgba(255, 234, 222, 0.7);
-  border-radius: 28px;
-  transform: rotate(28deg) skew(-8deg, -8deg);
-}
-
-.brand-line {
-  left: -20px;
-  bottom: 26px;
-  width: 180px;
-  height: 70px;
-  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
-  border-left: 5px solid transparent;
-  border-radius: 10px;
-}
-
-.content-panel {
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 46px 40px;
-}
-
-.content-wrap {
-  width: 100%;
-  max-width: 620px;
-}
-
-.back-btn {
-  margin-bottom: 18px;
-  padding: 12px 18px;
-  border-radius: 6px;
-  border: 1px solid #d8d8d8;
-  background: #ffffff;
-  color: #444444;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.page-kicker {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
-.danger-kicker {
-  color: #dc2626;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 46px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.danger-title {
-  color: #7f1d1d;
-}
-
-.page-desc {
-  margin: 10px 0 20px 0;
-  color: #7a7a7a;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.warning-box {
-  margin-bottom: 18px;
-  padding: 16px 18px;
-  border-radius: 10px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #9a3412;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.form-card {
-  padding: 22px;
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #e2e2e2;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.input-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #222222;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.text-input {
-  width: 100%;
-  height: 62px;
-  padding: 0 18px;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  background: #f7f7f7;
-  color: #222222;
-  font-size: 17px;
-  outline: none;
-}
-
-.text-input:focus {
-  border-color: #ff8744;
-  background: #ffffff;
-}
-
-.action-row {
-  display: flex;
-  gap: 12px;
-}
-
-.danger-btn,
-.secondary-btn {
-  flex: 1;
-  height: 62px;
-  border-radius: 6px;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.danger-btn {
-  border: none;
-  background: #dc2626;
-  color: #ffffff;
-}
-
-.secondary-btn {
-  border: 1px solid #d8d8d8;
-  background: #ffffff;
-  color: #444444;
-}
-
-.message {
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fff0f0;
-  border: 1px solid #ffcccc;
-  color: #d93025;
-}
-
-.success-message {
-  background: #eefaf0;
-  border: 1px solid #cde9d3;
-  color: #1a7f37;
-}
-
-@media (max-width: 1080px) {
-  .delete-shell {
-    grid-template-columns: 1fr;
-    max-width: 760px;
-    min-height: auto;
-  }
-
-  .brand-panel {
-    min-height: 320px;
-    padding: 38px 28px;
-  }
-
-  .brand-copy {
-    font-size: 40px;
-  }
-
-  .brand-sub {
-    margin-top: 58px;
-    font-size: 15px;
-  }
-
-  .content-panel {
-    padding: 34px 22px 44px 22px;
-  }
-
-  .page-title {
-    font-size: 38px;
-  }
-}
-
-@media (max-width: 720px) {
-  .delete-page {
-    padding: 0;
-  }
-
-  .delete-shell {
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    min-height: 250px;
-  }
-
-  .brand-copy {
-    font-size: 32px;
-  }
-
-  .page-title {
-    font-size: 32px;
-  }
-
-  .action-row {
-    flex-direction: column;
-  }
-}
-</style>

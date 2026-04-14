@@ -21,53 +21,53 @@ const handleSignup = async () => {
   successMessage.value = ''
 
   if (!username.value.trim()) {
-    errorMessage.value = '아이디를 입력해줘.'
+    errorMessage.value = '아이디를 입력해주세요.'
     return
   }
 
   if (!password.value.trim()) {
-    errorMessage.value = '비밀번호를 입력해줘.'
+    errorMessage.value = '비밀번호를 입력해주세요.'
     return
   }
 
   if (password.value.length < 8) {
-    errorMessage.value = '비밀번호는 8자 이상이어야 해.'
+    errorMessage.value = '비밀번호는 8자 이상이어야 합니다.'
     return
   }
 
   if (!confirmPassword.value.trim()) {
-    errorMessage.value = '비밀번호 확인을 입력해줘.'
+    errorMessage.value = '비밀번호 확인을 입력해주세요.'
     return
   }
 
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = '비밀번호가 일치하지 않아.'
+    errorMessage.value = '비밀번호가 일치하지 않습니다.'
     return
   }
 
   if (!name.value.trim()) {
-    errorMessage.value = '이름을 입력해줘.'
+    errorMessage.value = '이름을 입력해주세요.'
     return
   }
 
   if (!email.value.trim()) {
-    errorMessage.value = '이메일을 입력해줘.'
+    errorMessage.value = '이메일을 입력해주세요.'
     return
   }
 
   if (!nickname.value.trim()) {
-    errorMessage.value = '닉네임을 입력해줘.'
+    errorMessage.value = '닉네임을 입력해주세요.'
     return
   }
 
   if (!phoneNumber.value.trim()) {
-    errorMessage.value = '전화번호를 입력해줘.'
+    errorMessage.value = '전화번호를 입력해주세요.'
     return
   }
 
   const phoneRegex = /^010\d{8}$/
   if (!phoneRegex.test(phoneNumber.value)) {
-    errorMessage.value = '전화번호는 010으로 시작하는 11자리 숫자만 가능해. 예: 01012345678'
+    errorMessage.value = '전화번호는 010으로 시작하는 11자리 숫자만 가능합니다. 예: 01012345678'
     return
   }
 
@@ -81,21 +81,18 @@ const handleSignup = async () => {
     params.append('nickname', nickname.value)
     params.append('phoneNumber', phoneNumber.value)
 
-    const response = await api.post('/users/signup', params, {
+    await api.post('/users/signup', params, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     })
 
-    console.log('회원가입 응답:', response)
-    successMessage.value = '회원가입이 완료됐어. 로그인 페이지로 이동할게.'
+    successMessage.value = '회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.'
 
     setTimeout(() => {
       router.push('/login')
     }, 1000)
   } catch (err) {
-    console.error('회원가입 실패:', err)
-
     if (err.response) {
       errorMessage.value = `회원가입 실패 / status: ${err.response.status}`
     } else {
@@ -110,119 +107,86 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <div class="signup-page">
-    <div class="signup-shell">
-      <section class="brand-panel">
-        <div class="brand-shape brand-cube"></div>
-        <div class="brand-shape brand-paper"></div>
-        <div class="brand-shape brand-line"></div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1280px] overflow-hidden bg-[#f3f3f3] max-[1080px]:min-h-0 max-[1080px]:max-w-[760px] max-[1080px]:grid-cols-1 sm:min-h-[860px] md:grid-cols-[1fr_1.1fr]">
+      <section class="relative flex min-h-[250px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[1080px]:min-h-[320px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
 
-        <div class="brand-content">
-          <h1 class="brand-copy">
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[34px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[1080px]:text-[42px] sm:text-[58px]">
             회원가입하고<br />
             소싱 자동화를<br />
             시작하세요
           </h1>
 
-          <p class="brand-sub">
+          <p class="mt-[58px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
             Sourcing Automation System<br />
             - AutoSource
           </p>
         </div>
       </section>
 
-      <section class="form-panel">
-        <div class="form-wrap">
-          <h2 class="service-title">AutoSource</h2>
-          <p class="form-intro">
-            필요한 정보를 입력하고 계정을 만들어줘.
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[1080px]:px-[22px] max-[1080px]:pb-11 max-[1080px]:pt-[34px] sm:px-10 sm:py-[46px]">
+        <div class="w-full max-w-[620px]">
+          <h2 class="m-0 text-[34px] font-extrabold leading-[1.1] tracking-[-1px] text-[#101010] max-[1080px]:text-[40px] sm:text-[50px]">
+            AutoSource
+          </h2>
+          <p class="mb-[30px] mt-[10px] text-[17px] font-medium text-[#7a7a7a]">
+            필요한 정보를 입력하고 계정을 만들어주세요.
           </p>
 
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="input-label">아이디</label>
-              <input
-                  v-model="username"
-                  type="text"
-                  class="text-input"
-                  placeholder="아이디를 입력하세요."
-              />
+          <div class="mb-6 grid grid-cols-1 gap-y-[18px] sm:gap-x-4 sm:grid-cols-2">
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">아이디</label>
+              <input v-model="username" type="text" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="아이디를 입력하세요" />
             </div>
 
-            <div class="form-group">
-              <label class="input-label">이름</label>
-              <input
-                  v-model="name"
-                  type="text"
-                  class="text-input"
-                  placeholder="이름을 입력하세요."
-              />
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">이름</label>
+              <input v-model="name" type="text" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="이름을 입력하세요" />
             </div>
 
-            <div class="form-group">
-              <label class="input-label">비밀번호</label>
-              <input
-                  v-model="password"
-                  type="password"
-                  class="text-input"
-                  placeholder="비밀번호는 최소 8자 이상이어야 합니다."
-              />
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">비밀번호</label>
+              <input v-model="password" type="password" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="비밀번호는 최소 8자 이상이어야 합니다" />
             </div>
 
-            <div class="form-group">
-              <label class="input-label">비밀번호 확인</label>
-              <input
-                  v-model="confirmPassword"
-                  type="password"
-                  class="text-input"
-                  placeholder="비밀번호를 다시 입력하세요."
-              />
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">비밀번호 확인</label>
+              <input v-model="confirmPassword" type="password" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="비밀번호를 다시 입력하세요" />
             </div>
 
-            <div class="form-group">
-              <label class="input-label">이메일</label>
-              <input
-                  v-model="email"
-                  type="email"
-                  class="text-input"
-                  placeholder="이메일을 입력하세요."
-              />
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">이메일</label>
+              <input v-model="email" type="email" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="이메일을 입력하세요" />
             </div>
 
-            <div class="form-group">
-              <label class="input-label">닉네임</label>
-              <input
-                  v-model="nickname"
-                  type="text"
-                  class="text-input"
-                  placeholder="닉네임을 입력하세요."
-              />
+            <div class="flex flex-col">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">닉네임</label>
+              <input v-model="nickname" type="text" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="닉네임을 입력하세요" />
             </div>
 
-            <div class="form-group form-group-full">
-              <label class="input-label">전화번호</label>
-              <input
-                  v-model="phoneNumber"
-                  type="text"
-                  class="text-input"
-                  placeholder="01012345678"
-              />
+            <div class="flex flex-col sm:col-span-2">
+              <label class="mb-2 text-[15px] font-bold text-[#222222]">전화번호</label>
+              <input v-model="phoneNumber" type="text" class="h-[58px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[16px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[62px]" placeholder="01012345678" />
             </div>
           </div>
 
-          <button class="primary-btn" @click="handleSignup">
+          <button class="mb-3 h-[58px] w-full rounded-md bg-[#f39a66] text-[20px] font-bold text-white transition-[background-color,transform] duration-200 hover:bg-[#ef884b] active:translate-y-px sm:h-[62px]" @click="handleSignup">
             회원가입
           </button>
 
-          <button class="secondary-btn" @click="goToLogin">
+          <button class="h-[58px] w-full rounded-md border border-[#d8d8d8] bg-white text-[18px] font-bold text-[#444444] transition-colors hover:bg-[#fafafa] sm:h-[62px]" @click="goToLogin">
             로그인으로 돌아가기
           </button>
 
-          <p v-if="errorMessage" class="message error-message">
+          <p v-if="errorMessage" class="mt-5 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
             {{ errorMessage }}
           </p>
 
-          <p v-if="successMessage" class="message success-message">
+          <p v-if="successMessage" class="mt-5 rounded-lg border border-[#cde9d3] bg-[#eefaf0] px-4 py-[14px] text-[15px] font-semibold text-[#1a7f37]">
             {{ successMessage }}
           </p>
         </div>
@@ -230,292 +194,3 @@ const goToLogin = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.signup-page {
-  min-height: 100vh;
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.signup-shell {
-  width: 100%;
-  max-width: 1280px;
-  min-height: 860px;
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-
-.brand-panel {
-  position: relative;
-  background: #ff8744;
-  padding: 54px 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-}
-
-.brand-copy {
-  margin: 0;
-  color: #ffffff;
-  font-size: 58px;
-  line-height: 1.14;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  word-break: keep-all;
-}
-
-.brand-sub {
-  margin-top: 120px;
-  color: #fff7f2;
-  font-size: 18px;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.brand-shape {
-  position: absolute;
-  opacity: 0.32;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.brand-cube {
-  top: 18px;
-  right: 92px;
-  width: 220px;
-  height: 160px;
-  border: 4px solid rgba(255, 234, 222, 0.8);
-  border-radius: 28px;
-  transform: rotate(-32deg);
-}
-
-.brand-paper {
-  right: -30px;
-  bottom: 120px;
-  width: 230px;
-  height: 230px;
-  border: 4px solid rgba(255, 234, 222, 0.7);
-  border-radius: 28px;
-  transform: rotate(28deg) skew(-8deg, -8deg);
-}
-
-.brand-line {
-  left: -20px;
-  bottom: 26px;
-  width: 180px;
-  height: 70px;
-  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
-  border-left: 5px solid transparent;
-  border-radius: 10px;
-}
-
-.form-panel {
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 46px 40px;
-}
-
-.form-wrap {
-  width: 100%;
-  max-width: 620px;
-}
-
-.service-title {
-  margin: 0;
-  color: #101010;
-  font-size: 50px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.form-intro {
-  margin: 10px 0 30px 0;
-  color: #7a7a7a;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px 16px;
-  margin-bottom: 24px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group-full {
-  grid-column: 1 / -1;
-}
-
-.input-label {
-  margin-bottom: 8px;
-  color: #222222;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.text-input {
-  width: 100%;
-  height: 62px;
-  padding: 0 18px;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  background: #f7f7f7;
-  color: #222222;
-  font-size: 17px;
-  outline: none;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.text-input::placeholder {
-  color: #b3b3b3;
-  font-size: 16px;
-}
-
-.text-input:focus {
-  border-color: #ff8744;
-  background: #ffffff;
-}
-
-.primary-btn {
-  width: 100%;
-  height: 62px;
-  border: none;
-  border-radius: 6px;
-  background: #f39a66;
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 12px;
-  transition: background-color 0.18s ease, transform 0.12s ease;
-}
-
-.primary-btn:hover {
-  background: #ef884b;
-}
-
-.primary-btn:active {
-  transform: translateY(1px);
-}
-
-.secondary-btn {
-  width: 100%;
-  height: 62px;
-  border: 1px solid #d8d8d8;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #444444;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.secondary-btn:hover {
-  background: #fafafa;
-}
-
-.message {
-  margin-top: 20px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fff0f0;
-  border: 1px solid #ffcccc;
-  color: #d93025;
-}
-
-.success-message {
-  background: #eefaf0;
-  border: 1px solid #cde9d3;
-  color: #1a7f37;
-}
-
-@media (max-width: 1080px) {
-  .signup-shell {
-    grid-template-columns: 1fr;
-    max-width: 760px;
-    min-height: auto;
-  }
-
-  .brand-panel {
-    min-height: 320px;
-    padding: 38px 28px;
-  }
-
-  .brand-copy {
-    font-size: 42px;
-  }
-
-  .brand-sub {
-    margin-top: 58px;
-    font-size: 15px;
-  }
-
-  .form-panel {
-    padding: 34px 22px 44px 22px;
-  }
-
-  .service-title {
-    font-size: 40px;
-  }
-}
-
-@media (max-width: 720px) {
-  .signup-page {
-    padding: 0;
-  }
-
-  .signup-shell {
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    min-height: 250px;
-  }
-
-  .brand-copy {
-    font-size: 34px;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .service-title {
-    font-size: 34px;
-  }
-
-  .text-input,
-  .primary-btn,
-  .secondary-btn {
-    height: 58px;
-  }
-}
-</style>

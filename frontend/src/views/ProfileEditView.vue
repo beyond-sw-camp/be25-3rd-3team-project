@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios'
@@ -10,27 +10,28 @@ const name = ref('')
 const nickname = ref('')
 const email = ref('')
 const phoneNumber = ref('')
+
+const originalData = ref({})
 const error = ref('')
+const successMessage = ref('')
 
 onMounted(async () => {
   try {
     const response = await api.get('/users/me')
     username.value = response.data.username
+    name.value = response.data.name || ''
     nickname.value = response.data.nickname
     email.value = response.data.email
+    phoneNumber.value = response.data.phoneNumber || ''
 
-    if (response.data.name) {
-      name.value = response.data.name
-    }
-
-    if (response.data.phoneNumber) {
-      phoneNumber.value = response.data.phoneNumber
+    originalData.value = {
+      name: response.data.name || '',
+      nickname: response.data.nickname,
+      phoneNumber: response.data.phoneNumber || '',
     }
   } catch (err) {
-    console.error('내 정보 조회 실패:', err)
-
     if (err.response) {
-      error.value = `내 정보 조회 실패 / status: ${err.response.status}`
+      error.value = `정보 조회 실패 / status: ${err.response.status}`
     } else {
       error.value = '서버 연결 실패'
     }
@@ -38,403 +39,144 @@ onMounted(async () => {
 })
 
 const goBack = () => {
-  router.push('/profile')
+  router.push('/profile/info')
 }
 
-const goToEdit = () => {
-  router.push('/profile/edit')
-}
+const handleSave = async () => {
+  error.value = ''
+  successMessage.value = ''
 
-const goToDelete = () => {
-  router.push('/profile/delete')
-}
-
-const handleLogout = async () => {
-  try {
-    await api.post('/users/logout')
-    alert('로그아웃됐어.')
-    router.push('/login')
-  } catch (err) {
-    console.error('로그아웃 실패:', err)
-    alert('로그아웃 실패')
+  if (!nickname.value.trim()) {
+    error.value = '닉네임을 입력해줘.'
+    return
   }
+
+  if (phoneNumber.value) {
+    const phoneRegex = /^010\d{8}$/
+    if (!phoneRegex.test(phoneNumber.value)) {
+      error.value = '전화번호는 010으로 시작하는 11자리 숫자만 가능해.'
+      return
+    }
+  }
+
+  try {
+    const params = new URLSearchParams()
+    params.append('name', name.value)
+    params.append('nickname', nickname.value)
+    params.append('phoneNumber', phoneNumber.value)
+
+    await api.put('/users/me', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    })
+
+    successMessage.value = '정보가 수정됐어.'
+    originalData.value = {
+      name: name.value,
+      nickname: nickname.value,
+      phoneNumber: phoneNumber.value,
+    }
+  } catch (err) {
+    if (err.response) {
+      error.value = `정보 수정 실패 / status: ${err.response.status}`
+    } else {
+      error.value = '서버 연결 실패'
+    }
+  }
+}
+
+const hasChanges = () => {
+  return (
+    name.value !== originalData.value.name ||
+    nickname.value !== originalData.value.nickname ||
+    phoneNumber.value !== originalData.value.phoneNumber
+  )
 }
 </script>
 
 <template>
-  <div class="info-page">
-    <div class="info-shell">
-      <section class="brand-panel">
-        <div class="brand-shape brand-cube"></div>
-        <div class="brand-shape brand-paper"></div>
-        <div class="brand-shape brand-line"></div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1280px] overflow-hidden bg-[#f3f3f3] max-[1080px]:min-h-0 max-[1080px]:max-w-[760px] max-[1080px]:grid-cols-1 sm:min-h-[760px] md:grid-cols-[1fr_1.05fr]">
+      <section class="relative flex min-h-[250px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[1080px]:min-h-[320px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
 
-        <div class="brand-content">
-          <h1 class="brand-copy">
-            내 계정 정보를<br />
-            한눈에<br />
-            확인하세요
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[32px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[1080px]:text-[40px] sm:text-[56px]">
+            내 정보를<br />
+            수정하고<br />
+            업데이트하세요
           </h1>
 
-          <p class="brand-sub">
+          <p class="mt-[58px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
             Sourcing Automation System<br />
             - AutoSource
           </p>
         </div>
       </section>
 
-      <section class="content-panel">
-        <div class="content-wrap">
-          <button class="back-btn" @click="goBack">
-            ← 마이페이지로
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[1080px]:px-[22px] max-[1080px]:pb-11 max-[1080px]:pt-[34px] sm:px-10 sm:py-[46px]">
+        <div class="w-full max-w-[620px]">
+          <button class="mb-[18px] rounded-md border border-[#d8d8d8] bg-white px-[18px] py-3 text-[15px] font-bold text-[#444444]" @click="goBack">
+            ← 내 정보로
           </button>
 
-          <p class="page-kicker">ACCOUNT INFO</p>
-          <h2 class="page-title">내 정보</h2>
-          <p class="page-desc">현재 계정에 저장된 정보를 확인할 수 있어.</p>
+          <p class="mb-2 mt-0 text-[14px] font-bold tracking-[0.4px] text-[#ff6b1a]">EDIT PROFILE</p>
+          <h2 class="m-0 text-[32px] font-extrabold leading-[1.1] tracking-[-1px] text-[#101010] max-[1080px]:text-[38px] sm:text-[48px]">
+            정보 수정
+          </h2>
+          <p class="mb-7 mt-[10px] text-[17px] font-medium text-[#7a7a7a]">변경할 정보를 입력하고 저장해줘.</p>
 
-          <div v-if="error" class="message error-message">
+          <div v-if="error" class="mb-4 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
             {{ error }}
           </div>
 
-          <div v-if="!error" class="info-card">
-            <div class="info-row">
-              <span class="info-label">로그인 ID</span>
-              <span class="info-value">{{ username }}</span>
+          <div v-if="successMessage" class="mb-4 rounded-lg border border-[#cde9d3] bg-[#eefaf0] px-4 py-[14px] text-[15px] font-semibold text-[#1a7f37]">
+            {{ successMessage }}
+          </div>
+
+          <div class="mb-[18px] rounded-[10px] border border-[#e2e2e2] bg-white p-[22px]">
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">로그인 ID</label>
+              <input v-model="username" type="text" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f0f0f0] px-[18px] text-[17px] text-[#888888] outline-none" readonly />
+              <span class="mt-1 block text-[12px] text-[#999999]">아이디는 변경할 수 없어.</span>
             </div>
 
-            <div class="info-row">
-              <span class="info-label">사용자명</span>
-              <span class="info-value">{{ name || '-' }}</span>
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">이메일</label>
+              <input v-model="email" type="email" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f0f0f0] px-[18px] text-[17px] text-[#888888] outline-none" readonly />
+              <span class="mt-1 block text-[12px] text-[#999999]">이메일은 변경할 수 없어.</span>
             </div>
 
-            <div class="info-row">
-              <span class="info-label">닉네임</span>
-              <span class="info-value">{{ nickname }}</span>
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">사용자명</label>
+              <input v-model="name" type="text" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none focus:border-[#ff8744] focus:bg-white" placeholder="이름을 입력하세요." />
             </div>
 
-            <div class="info-row">
-              <span class="info-label">이메일</span>
-              <span class="info-value">{{ email }}</span>
+            <div class="mb-4">
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">닉네임 *</label>
+              <input v-model="nickname" type="text" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none focus:border-[#ff8744] focus:bg-white" placeholder="닉네임을 입력하세요." />
             </div>
 
-            <div class="info-row">
-              <span class="info-label">전화번호</span>
-              <span class="info-value">{{ phoneNumber || '-' }}</span>
+            <div>
+              <label class="mb-2 block text-[15px] font-bold text-[#222222]">전화번호</label>
+              <input v-model="phoneNumber" type="text" class="h-[62px] w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[18px] text-[17px] text-[#222222] outline-none focus:border-[#ff8744] focus:bg-white" placeholder="01012345678" />
+              <span class="mt-1 block text-[12px] text-[#999999]">010으로 시작하는 11자리 숫자</span>
             </div>
           </div>
 
-          <div class="action-row">
-            <button class="primary-btn" @click="goToEdit">
-              정보 수정
+          <div class="flex flex-col gap-3 min-[721px]:flex-row">
+            <button class="h-[62px] flex-1 rounded-md bg-[#f39a66] text-[18px] font-bold text-white transition-colors enabled:hover:bg-[#ef884b] disabled:cursor-not-allowed disabled:bg-[#cccccc]" :disabled="!hasChanges()" @click="handleSave">
+              저장하기
             </button>
-
-            <button class="danger-btn" @click="goToDelete">
-              회원 탈퇴
+            <button class="h-[62px] flex-1 rounded-md border border-[#d8d8d8] bg-white text-[18px] font-bold text-[#444444]" @click="goBack">
+              취소
             </button>
           </div>
-
-          <button class="secondary-btn" @click="handleLogout">
-            로그아웃
-          </button>
         </div>
       </section>
     </div>
   </div>
 </template>
-
-<style scoped>
-.info-page {
-  min-height: 100vh;
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.info-shell {
-  width: 100%;
-  max-width: 1280px;
-  min-height: 760px;
-  display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-
-.brand-panel {
-  position: relative;
-  background: #ff8744;
-  padding: 54px 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-}
-
-.brand-copy {
-  margin: 0;
-  color: #ffffff;
-  font-size: 56px;
-  line-height: 1.14;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  word-break: keep-all;
-}
-
-.brand-sub {
-  margin-top: 120px;
-  color: #fff7f2;
-  font-size: 18px;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.brand-shape {
-  position: absolute;
-  opacity: 0.32;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.brand-cube {
-  top: 18px;
-  right: 92px;
-  width: 220px;
-  height: 160px;
-  border: 4px solid rgba(255, 234, 222, 0.8);
-  border-radius: 28px;
-  transform: rotate(-32deg);
-}
-
-.brand-paper {
-  right: -30px;
-  bottom: 120px;
-  width: 230px;
-  height: 230px;
-  border: 4px solid rgba(255, 234, 222, 0.7);
-  border-radius: 28px;
-  transform: rotate(28deg) skew(-8deg, -8deg);
-}
-
-.brand-line {
-  left: -20px;
-  bottom: 26px;
-  width: 180px;
-  height: 70px;
-  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
-  border-left: 5px solid transparent;
-  border-radius: 10px;
-}
-
-.content-panel {
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 46px 40px;
-}
-
-.content-wrap {
-  width: 100%;
-  max-width: 620px;
-}
-
-.back-btn {
-  margin-bottom: 18px;
-  padding: 12px 18px;
-  border-radius: 6px;
-  border: 1px solid #d8d8d8;
-  background: #ffffff;
-  color: #444444;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.page-kicker {
-  margin: 0 0 8px 0;
-  color: #ff6b1a;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-}
-
-.page-title {
-  margin: 0;
-  color: #101010;
-  font-size: 48px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.page-desc {
-  margin: 10px 0 28px 0;
-  color: #7a7a7a;
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.info-card {
-  border: 1px solid #e2e2e2;
-  border-radius: 10px;
-  background: #ffffff;
-  overflow: hidden;
-  margin-bottom: 18px;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  color: #7a7a7a;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.info-value {
-  color: #111111;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: right;
-  word-break: break-all;
-}
-
-.action-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.primary-btn,
-.danger-btn,
-.secondary-btn {
-  height: 62px;
-  border-radius: 6px;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primary-btn {
-  flex: 1;
-  border: none;
-  background: #f39a66;
-  color: #ffffff;
-}
-
-.primary-btn:hover {
-  background: #ef884b;
-}
-
-.danger-btn {
-  flex: 1;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.secondary-btn {
-  width: 100%;
-  border: 1px solid #d8d8d8;
-  background: #ffffff;
-  color: #444444;
-}
-
-.message {
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fff0f0;
-  border: 1px solid #ffcccc;
-  color: #d93025;
-}
-
-@media (max-width: 1080px) {
-  .info-shell {
-    grid-template-columns: 1fr;
-    max-width: 760px;
-    min-height: auto;
-  }
-
-  .brand-panel {
-    min-height: 320px;
-    padding: 38px 28px;
-  }
-
-  .brand-copy {
-    font-size: 40px;
-  }
-
-  .brand-sub {
-    margin-top: 58px;
-    font-size: 15px;
-  }
-
-  .content-panel {
-    padding: 34px 22px 44px 22px;
-  }
-
-  .page-title {
-    font-size: 38px;
-  }
-}
-
-@media (max-width: 720px) {
-  .info-page {
-    padding: 0;
-  }
-
-  .info-shell {
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    min-height: 250px;
-  }
-
-  .brand-copy {
-    font-size: 32px;
-  }
-
-  .page-title {
-    font-size: 32px;
-  }
-
-  .action-row {
-    flex-direction: column;
-  }
-
-  .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .info-value {
-    text-align: left;
-  }
-}
-</style>

@@ -19,12 +19,12 @@ const handleLogin = async () => {
   successMessage.value = ''
 
   if (!username.value.trim()) {
-    errorMessage.value = '?꾩씠?붾? ?낅젰?댁쨾.'
+    errorMessage.value = '아이디를 입력하세요.'
     return
   }
 
   if (!password.value.trim()) {
-    errorMessage.value = '鍮꾨?踰덊샇瑜??낅젰?댁쨾.'
+    errorMessage.value = '비밀번호를 입력하세요.'
     return
   }
 
@@ -40,21 +40,21 @@ const handleLogin = async () => {
     })
     const meResponse = await api.get('/users/me')
 
-    console.log('濡쒓렇???묐떟:', response)
-    console.log('/users/me 응답 status:', meResponse.status)
-    successMessage.value = '濡쒓렇???깃났'
+    // console.log('로그인 응답:', response)
+    // console.log('/users/me 응답 status:', meResponse.status)
+    successMessage.value = '로그인 성공'
     router.push('/')
   } catch (err) {
-    console.error('濡쒓렇???ㅽ뙣:', err)
+    // console.error('로그인 실패:', err)
 
     if (err.response) {
       if (err.response.status === 401) {
-        errorMessage.value = '?꾩씠???먮뒗 鍮꾨?踰덊샇媛 ?щ컮瑜댁? ?딆븘.'
+        errorMessage.value = '아이디나 비밀번호가 틀렸습니다.'
       } else {
-        errorMessage.value = `濡쒓렇???ㅽ뙣 / status: ${err.response.status}`
+        errorMessage.value = `로그인 실패 / status: ${err.response.status}`
       }
     } else {
-      errorMessage.value = '?쒕쾭 ?곌껐 ?ㅽ뙣'
+      errorMessage.value = '서버 연결 실패'
     }
   }
 }
@@ -85,97 +85,99 @@ const handleNaverLogin = () => {
 </script>
 
 <template>
-  <div class="login-page">
-    <div class="login-shell">
-      <section class="brand-panel">
-        <div class="brand-shape brand-cube"></div>
-        <div class="brand-shape brand-paper"></div>
-        <div class="brand-shape brand-line"></div>
+  <div class="flex min-h-screen items-center justify-center bg-[#f3f3f3] p-0 sm:p-6">
+    <div class="grid min-h-screen w-full max-w-[1180px] overflow-hidden bg-[#f3f3f3] max-[980px]:min-h-0 max-[980px]:max-w-[700px] max-[980px]:grid-cols-1 sm:min-h-[760px] md:grid-cols-2">
+      <section class="relative flex min-h-[280px] items-start justify-start overflow-hidden bg-[#ff8744] px-[28px] py-[38px] max-[980px]:min-h-[340px] sm:px-[34px] sm:py-[54px]">
+        <div class="pointer-events-none absolute right-[92px] top-[18px] z-[1] h-[160px] w-[220px] rotate-[-32deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.8)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[120px] right-[-30px] z-[1] h-[230px] w-[230px] rotate-[28deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[rgba(255,234,222,0.7)] opacity-[0.32]"></div>
+        <div class="pointer-events-none absolute bottom-[26px] left-[-20px] z-[1] h-[70px] w-[180px] rounded-[10px] border-b-[5px] border-b-[rgba(255,234,222,0.55)] border-l-[5px] border-l-transparent opacity-[0.32]"></div>
 
-        <div class="brand-content">
-          <h1 class="brand-copy">
+        <div class="relative z-[2] mt-5">
+          <h1 class="m-0 break-keep text-[34px] font-extrabold leading-[1.14] tracking-[-1.5px] text-white max-[980px]:text-[44px] sm:text-[62px]">
             Log in now<br />
             and automate<br />
             your sourcing flow
           </h1>
 
-          <p class="brand-sub">
+          <p class="mt-[60px] text-[15px] font-medium leading-[1.5] text-[#fff7f2] sm:mt-[120px] sm:text-[18px]">
             Sourcing Automation System<br />
             - AutoSource
           </p>
         </div>
       </section>
 
-      <section class="form-panel">
-        <div class="form-wrap">
-          <h2 class="service-title">AutoSource</h2>
+      <section class="flex items-center justify-center bg-[#f3f3f3] px-[18px] pb-10 pt-7 max-[980px]:px-6 max-[980px]:pb-12 max-[980px]:pt-[38px] sm:px-[46px] sm:py-[54px]">
+        <div class="w-full max-w-[460px]">
+          <h2 class="mb-8 mt-0 text-[34px] font-extrabold leading-[1.1] tracking-[-1px] text-[#101010] max-[980px]:mb-8 max-[980px]:text-[42px] sm:mb-[42px] sm:text-[54px]">
+            AutoSource
+          </h2>
 
-          <div class="form-group">
+          <div class="mb-[22px]">
             <input
-                id="username"
-                v-model="username"
-                type="text"
-                class="text-input"
-                placeholder="?꾩씠?붾? ?낅젰?섏꽭??"
+              id="username"
+              v-model="username"
+              type="text"
+              class="h-16 w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[22px] text-[18px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[18px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[72px] sm:text-[20px] sm:placeholder:text-[20px]"
+              placeholder="아이디를 입력하세요"
             />
           </div>
 
-          <div class="form-group">
+          <div class="mb-[22px]">
             <input
-                id="password"
-                v-model="password"
-                type="password"
-                class="text-input"
-                placeholder="鍮꾨?踰덊샇瑜??낅젰?섏꽭??"
-                @keyup.enter="handleLogin"
+              id="password"
+              v-model="password"
+              type="password"
+              class="h-16 w-full rounded-md border border-[#dddddd] bg-[#f7f7f7] px-[22px] text-[18px] text-[#222222] outline-none transition-[border-color,background-color] duration-200 placeholder:text-[18px] placeholder:text-[#b3b3b3] focus:border-[#ff8744] focus:bg-white sm:h-[72px] sm:text-[20px] sm:placeholder:text-[20px]"
+              placeholder="비밀번호를 입력하세요"
+              @keyup.enter="handleLogin"
             />
           </div>
 
-          <label class="remember-row">
-            <input v-model="rememberId" type="checkbox" />
+          <label class="mb-[30px] mt-3 flex cursor-pointer items-center gap-3 text-[16px] font-semibold text-[#222222]">
+            <input v-model="rememberId" type="checkbox" class="h-[18px] w-[18px] accent-[#ff8744]" />
             <span>Remember ID</span>
           </label>
 
-          <button class="primary-btn" @click="handleLogin">
-            濡쒓렇??
+          <button class="h-[60px] w-full rounded-md bg-[#f39a66] text-[19px] font-bold text-white transition-[background-color,transform] duration-200 hover:bg-[#ef884b] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleLogin">
+            로그인
           </button>
 
-          <div class="sub-links">
-            <button class="text-link-btn" @click="goToSignup">
+          <div class="mt-8 flex flex-wrap items-center justify-center gap-[10px] sm:gap-[18px]">
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToSignup">
               Sign up
             </button>
-            <span class="divider">|</span>
-            <button class="text-link-btn" @click="goToFindPassword">
+            <span class="text-[18px] text-[#b5b5b5]">|</span>
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToFindPassword">
               Find password
             </button>
           </div>
 
-          <div class="sub-links sub-links-second">
-            <button class="text-link-btn" @click="goToFindId">
+          <div class="mt-[14px] flex flex-wrap items-center justify-center gap-[10px] sm:gap-[18px]">
+            <button class="bg-transparent p-0 text-[15px] font-semibold text-[#9d9d9d] transition-colors hover:text-[#555555] max-[980px]:text-[17px] sm:text-[19px]" @click="goToFindId">
               Find ID
             </button>
           </div>
 
-          <p v-if="errorMessage" class="message error-message">
+          <p v-if="errorMessage" class="mt-6 rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-[14px] text-[15px] font-semibold text-[#d93025]">
             {{ errorMessage }}
           </p>
 
-          <p v-if="successMessage" class="message success-message">
+          <p v-if="successMessage" class="mt-6 rounded-lg border border-[#cde9d3] bg-[#eefaf0] px-4 py-[14px] text-[15px] font-semibold text-[#1a7f37]">
             {{ successMessage }}
           </p>
 
-          <div class="sns-section">
-            <p class="sns-title">Social login</p>
+          <div class="mt-[52px]">
+            <p class="mb-4 mt-0 text-center text-[22px] font-bold text-[#222222]">Social login</p>
 
-            <button class="sns-btn kakao-btn" @click="handleKakaoLogin">
+            <button class="mb-[14px] h-[60px] w-full rounded-md bg-[#fee500] text-[19px] font-bold text-[#191919] transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleKakaoLogin">
               Kakao
             </button>
 
-            <button class="sns-btn google-btn" @click="handleGoogleLogin">
+            <button class="mb-[14px] h-[60px] w-full rounded-md border border-[#d8d8d8] bg-white text-[19px] font-bold text-[#202124] transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleGoogleLogin">
               Google
             </button>
 
-            <button class="sns-btn naver-btn" @click="handleNaverLogin">
+            <button class="mb-[14px] h-[60px] w-full rounded-md bg-[#03c75a] text-[19px] font-bold text-white transition-[transform,filter] duration-200 hover:brightness-[0.98] active:translate-y-px sm:h-[66px] sm:text-[22px]" @click="handleNaverLogin">
               Naver
             </button>
           </div>
@@ -184,369 +186,3 @@ const handleNaverLogin = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.login-page {
-  min-height: 100vh;
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.login-shell {
-  width: 100%;
-  max-width: 1180px;
-  min-height: 760px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-
-.brand-panel {
-  position: relative;
-  background: #ff8744;
-  padding: 54px 34px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-}
-
-.brand-content {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-}
-
-.brand-copy {
-  margin: 0;
-  color: #ffffff;
-  font-size: 62px;
-  line-height: 1.14;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  word-break: keep-all;
-}
-
-.brand-sub {
-  margin-top: 120px;
-  color: #fff7f2;
-  font-size: 18px;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.brand-shape {
-  position: absolute;
-  opacity: 0.32;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.brand-cube {
-  top: 18px;
-  right: 92px;
-  width: 220px;
-  height: 160px;
-  border: 4px solid rgba(255, 234, 222, 0.8);
-  border-radius: 28px;
-  transform: rotate(-32deg);
-}
-
-.brand-paper {
-  right: -30px;
-  bottom: 120px;
-  width: 230px;
-  height: 230px;
-  border: 4px solid rgba(255, 234, 222, 0.7);
-  border-radius: 28px;
-  transform: rotate(28deg) skew(-8deg, -8deg);
-}
-
-.brand-line {
-  left: -20px;
-  bottom: 26px;
-  width: 180px;
-  height: 70px;
-  border-bottom: 5px solid rgba(255, 234, 222, 0.55);
-  border-left: 5px solid transparent;
-  border-radius: 10px;
-}
-
-.form-panel {
-  background: #f3f3f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 54px 46px;
-}
-
-.form-wrap {
-  width: 100%;
-  max-width: 460px;
-}
-
-.service-title {
-  margin: 0 0 42px 0;
-  color: #101010;
-  font-size: 54px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.form-group {
-  margin-bottom: 22px;
-}
-
-.text-input {
-  width: 100%;
-  height: 72px;
-  padding: 0 22px;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
-  border-radius: 6px;
-  background: #f7f7f7;
-  color: #222222;
-  font-size: 20px;
-  outline: none;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
-}
-
-.text-input::placeholder {
-  color: #b3b3b3;
-  font-size: 20px;
-}
-
-.text-input:focus {
-  border-color: #ff8744;
-  background: #ffffff;
-}
-
-.remember-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 12px 0 30px 0;
-  color: #222222;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.remember-row input {
-  width: 18px;
-  height: 18px;
-  accent-color: #ff8744;
-}
-
-.primary-btn {
-  width: 100%;
-  height: 66px;
-  border: none;
-  border-radius: 6px;
-  background: #f39a66;
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.18s ease, transform 0.12s ease;
-}
-
-.primary-btn:hover {
-  background: #ef884b;
-}
-
-.primary-btn:active {
-  transform: translateY(1px);
-}
-
-.sub-links {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.sub-links-second {
-  margin-top: 14px;
-}
-
-.text-link-btn {
-  background: transparent;
-  border: none;
-  color: #9d9d9d;
-  font-size: 19px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-}
-
-.text-link-btn:hover {
-  color: #555555;
-}
-
-.divider {
-  color: #b5b5b5;
-  font-size: 18px;
-}
-
-.message {
-  margin-top: 24px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fff0f0;
-  border: 1px solid #ffcccc;
-  color: #d93025;
-}
-
-.success-message {
-  background: #eefaf0;
-  border: 1px solid #cde9d3;
-  color: #1a7f37;
-}
-
-.sns-section {
-  margin-top: 52px;
-}
-
-.sns-title {
-  margin: 0 0 16px 0;
-  color: #222222;
-  font-size: 22px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.sns-btn {
-  width: 100%;
-  height: 66px;
-  border-radius: 6px;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 14px;
-  transition: transform 0.12s ease, filter 0.18s ease;
-}
-
-.sns-btn:hover {
-  filter: brightness(0.98);
-}
-
-.sns-btn:active {
-  transform: translateY(1px);
-}
-
-.kakao-btn {
-  border: none;
-  background: #fee500;
-  color: #191919;
-}
-
-.google-btn {
-  border: 1px solid #d8d8d8;
-  background: #ffffff;
-  color: #202124;
-}
-
-.naver-btn {
-  border: none;
-  background: #03c75a;
-  color: #ffffff;
-}
-
-@media (max-width: 980px) {
-  .login-shell {
-    grid-template-columns: 1fr;
-    max-width: 700px;
-    min-height: auto;
-  }
-
-  .brand-panel {
-    min-height: 340px;
-    padding: 38px 28px;
-  }
-
-  .brand-copy {
-    font-size: 44px;
-  }
-
-  .brand-sub {
-    margin-top: 60px;
-    font-size: 15px;
-  }
-
-  .form-panel {
-    padding: 38px 24px 48px 24px;
-  }
-
-  .service-title {
-    font-size: 42px;
-    margin-bottom: 32px;
-  }
-
-  .text-input {
-    height: 64px;
-    font-size: 18px;
-  }
-
-  .text-input::placeholder {
-    font-size: 18px;
-  }
-
-  .primary-btn,
-  .sns-btn {
-    height: 60px;
-    font-size: 19px;
-  }
-
-  .text-link-btn {
-    font-size: 17px;
-  }
-}
-
-@media (max-width: 640px) {
-  .login-page {
-    padding: 0;
-  }
-
-  .login-shell {
-    min-height: 100vh;
-  }
-
-  .brand-panel {
-    min-height: 280px;
-  }
-
-  .brand-copy {
-    font-size: 34px;
-  }
-
-  .service-title {
-    font-size: 34px;
-  }
-
-  .form-panel {
-    padding: 28px 18px 40px 18px;
-  }
-
-  .sub-links {
-    gap: 10px;
-  }
-
-  .text-link-btn {
-    font-size: 15px;
-  }
-}
-</style>
