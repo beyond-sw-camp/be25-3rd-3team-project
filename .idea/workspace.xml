@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="45915adf-0d55-4df4-a3e2-b4ba72b54852" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/HomeView.vue" afterDir="false" />
-    </list>
+    <list default="true" id="45915adf-0d55-4df4-a3e2-b4ba72b54852" name="변경" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -105,7 +101,10 @@
       <workItem from="1775780253121" duration="16000" />
       <workItem from="1775780292711" duration="11752000" />
       <workItem from="1775826230129" duration="16523000" />
-      <workItem from="1776133893900" duration="4006000" />
+      <workItem from="1776133893900" duration="21568000" />
+      <workItem from="1776174871866" duration="385000" />
+      <workItem from="1776175583997" duration="300000" />
+      <workItem from="1776211987201" duration="7053000" />
     </task>
     <servers />
   </component>

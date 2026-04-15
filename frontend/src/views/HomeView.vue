@@ -59,7 +59,7 @@ const handleLogout = async () => {
     username.value = ''
     nickname.value = ''
     email.value = ''
-    router.push('/login')
+    router.push('/')
   } catch (err) {
     if (err.response) {
       alert(`로그아웃 실패 / status: ${err.response.status}`)
@@ -71,82 +71,82 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-[#f3f3f3]">
+  <div class="min-h-screen bg-white">
     <!-- 헤더 -->
-    <header class="relative flex min-h-[53px] flex-wrap items-center justify-center gap-3 px-4 py-4 min-[641px]:h-[59px] min-[641px]:justify-between min-[641px]:px-[25px] min-[641px]:py-0">
-      <div class="h-[31px] w-[31px] rotate-45 rounded-[6px] border-2 border-[#ffb28a] opacity-55"></div>
+    <header class="flex h-[72px] items-center justify-between px-6 min-[641px]:px-[40px] min-[981px]:px-[60px]">
+      <!-- 로고 -->
+      <div class="flex h-[40px] items-center gap-2">
+        <div class="h-[40px] w-[40px] rounded-[8px] bg-[#ff5a00] flex items-center justify-center">
+          <span class="text-white font-bold text-[20px]">A</span>
+        </div>
+        <span class="text-[20px] font-bold text-[#111827]">AutoSource</span>
+      </div>
 
-      <nav class="flex flex-wrap items-center justify-center gap-4 min-[641px]:justify-end min-[981px]:gap-5">
-        <button class="bg-transparent text-[14px] font-semibold text-[#111111]">사용 가이드</button>
-        <button class="bg-transparent text-[14px] font-semibold text-[#111111]">서비스 소개</button>
-
-        <button v-if="!isLoggedIn" class="rounded border-2 border-[#ff5a00] bg-transparent px-[18px] py-[5px] text-[14px] font-bold text-[#444444] hover:bg-[#ff5a00] hover:text-white transition-colors" @click="goToLogin">
-          로그인
-        </button>
-
-        <button v-if="isLoggedIn" class="rounded border-2 border-[#ff5a00] bg-transparent px-[18px] py-[5px] text-[14px] font-bold text-[#444444]" @click="goToProfile">
-          마이페이지
-        </button>
+      <!-- 메뉴 -->
+      <nav class="hidden h-[40px] items-center gap-8 min-[768px]:flex">
+        <button class="flex h-[40px] items-center bg-transparent text-[15px] font-bold text-[#4b5563] hover:text-[#111827] transition-colors">사용 가이드</button>
+        <button class="flex h-[40px] items-center bg-transparent text-[15px] font-bold text-[#4b5563] hover:text-[#111827] transition-colors">서비스 소개</button>
+        <button class="flex h-[40px] items-center bg-transparent text-[15px] font-bold text-[#4b5563] hover:text-[#111827] transition-colors">가격 안내</button>
+        <button class="flex h-[40px] items-center bg-transparent text-[15px] font-bold text-[#4b5563] hover:text-[#111827] transition-colors">고객센터</button>
       </nav>
+
+      <!-- 로그인 버튼 -->
+      <div class="flex h-[40px] items-center gap-3">
+        <template v-if="!isLoggedIn">
+          <button class="hidden h-[40px] items-center rounded-md bg-[#ff7b39] px-5 text-[14px] font-bold text-white hover:bg-[#ee864b] transition-colors min-[768px]:flex" @click="goToLogin">
+            로그인
+          </button>
+          <button class="flex h-[40px] items-center rounded-md bg-[#ff7b39] px-4 text-[14px] font-bold text-white hover:bg-[#ee864b] transition-colors min-[768px]:hidden" @click="goToLogin">
+            로그인
+          </button>
+        </template>
+        <template v-else>
+          <button class="flex h-[40px] items-center rounded-md bg-[#ff7b39] px-5 text-[14px] font-bold text-white hover:bg-[#ee864b] transition-colors" @click="goToProfile">
+            마이페이지
+          </button>
+          <button class="flex h-[40px] items-center rounded-md border border-[#d1d5db] bg-white px-5 text-[14px] font-bold text-[#374151] hover:bg-[#f9fafb] transition-colors" @click="handleLogout">
+            로그아웃
+          </button>
+        </template>
+      </div>
     </header>
 
     <!-- 메인 콘텐츠 -->
-    <main class="relative flex h-[calc(100vh-53px)] items-center justify-center px-4 pb-12 pt-6 min-[641px]:h-[calc(100vh-59px)] min-[641px]:px-[17px] min-[641px]:pb-10 min-[641px]:pt-7">
+    <main class="relative flex min-h-[calc(100vh-72px)] flex-col items-center justify-center overflow-hidden bg-[#f8f8f8] px-6 pb-20 pt-10 min-[641px]:px-[40px] min-[981px]:px-[60px]">
       <!-- 배경 장식 요소들 -->
-      <div class="pointer-events-none absolute left-[-28px] top-[14px] h-[200px] w-[200px] rotate-[32deg] rounded-[28px] border-4 border-[#ffbf9e] opacity-[0.32]"></div>
-      <div class="pointer-events-none absolute bottom-10 right-[-70px] h-[220px] w-[260px] rotate-[24deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[28px] border-4 border-[#ffbf9e] opacity-[0.32]"></div>
+      <div class="pointer-events-none absolute left-[-60px] top-[20px] h-[240px] w-[240px] rotate-[32deg] rounded-[32px] border-4 border-[#ffbf9e] opacity-[0.35]"></div>
+      <div class="pointer-events-none absolute bottom-[40px] right-[-100px] h-[280px] w-[320px] rotate-[24deg] skew-x-[-8deg] skew-y-[-8deg] rounded-[32px] border-4 border-[#ffbf9e] opacity-[0.35]"></div>
+      <div class="pointer-events-none absolute left-[10%] bottom-[20%] h-[120px] w-[120px] rotate-[-15deg] rounded-[20px] border-4 border-[#ffbf9e] opacity-[0.25]"></div>
+      <div class="pointer-events-none absolute right-[15%] top-[15%] h-[80px] w-[80px] rotate-[45deg] rounded-[12px] border-4 border-[#ffbf9e] opacity-[0.3]"></div>
 
-      <div class="relative z-[2] w-full max-w-[686px] text-center">
-        <!-- 로고 -->
-        <h1 class="m-0 text-[34px] font-semibold leading-none tracking-[-1px] text-[#ff5a00] min-[641px]:text-[45px] min-[981px]:text-[63px]">
-          AutoSource
-        </h1>
-        <p class="mb-[35px] mt-[7px] text-[14px] font-medium text-[#ff7b39]">Sourcing Automation System</p>
-
-        <!-- 기능 소개 -->
-        <div class="mb-[18px] flex flex-col items-center justify-center gap-[10px] text-[13px] font-semibold tracking-[-0.6px] text-[#4b5563] min-[641px]:flex-row min-[641px]:flex-wrap min-[641px]:gap-[18px] min-[981px]:text-[19px] min-[981px]:gap-[42px]">
-          <span>자동 상품 소싱</span>
-          <span>국내 마켓 자동 업로드</span>
-          <span>최고 마진 자동 선택</span>
+      <div class="relative z-[2] w-full max-w-[800px] text-center">
+        <!-- AutoSource 로고 -->
+        <div class="mb-10 mt-8 min-[641px]:mt-12">
+          <h1 class="m-0 text-[48px] font-semibold leading-none tracking-[-1px] text-[#ff5a00] min-[641px]:text-[68px] min-[981px]:text-[88px]">
+            AutoSource
+          </h1>
+          <p class="mt-3 text-[16px] font-medium text-[#ff7b39] min-[641px]:text-[18px]">Sourcing Automation System</p>
         </div>
 
-        <!-- 로그인 상태 카드 -->
-        <div v-if="isLoggedIn" class="mx-auto max-w-[504px] rounded-[13px] border border-[#ececec] bg-[rgba(255,255,255,0.78)] px-5 py-[21px] backdrop-blur-[4px]">
-          <p class="mb-2 text-[15px] font-semibold text-[#111827]">{{ nickname }}님, 반갑습니다.</p>
-          <p class="mb-4 text-[12px] text-[#6b7280]">{{ email }}</p>
+        <!-- 타이틀 -->
+        <h2 class="m-0 text-[22px] font-bold leading-[1.4] tracking-[-0.5px] text-[#111827] min-[641px]:text-[28px] min-[981px]:text-[32px]">
+          자동 소싱으로 시작하는<br />가장 쉬운 구매 대행
+        </h2>
 
-          <div class="flex flex-wrap justify-center gap-[10px]">
-            <button class="min-h-[38px] min-w-[119px] rounded-md bg-[#ff7b39] px-[17px] text-[13px] font-bold text-white hover:bg-[#ee864b]" @click="goToSourcing">
-              소싱 시작하기
-            </button>
-            <button class="min-h-[38px] min-w-[119px] rounded-md border border-[#d1d5db] bg-white px-[17px] text-[13px] font-bold text-[#374151] hover:bg-[#f9fafb]" @click="goToProfile">
-              마이페이지
-            </button>
-            <button class="min-h-[38px] min-w-[119px] rounded-md border border-[#d1d5db] bg-white px-[17px] text-[13px] font-bold text-[#374151] hover:bg-[#f9fafb]" @click="handleLogout">
-              로그아웃
-            </button>
-          </div>
-        </div>
+        <!-- 서브타이틀 -->
+        <p class="mb-10 mt-5 text-[16px] font-medium text-[#6b7280] min-[641px]:text-[18px]">
+          AutoSource로 1분만에 시작해보세요
+        </p>
 
-        <!-- 비로그인 상태 카드 -->
-        <div v-else class="mx-auto max-w-[504px] rounded-[13px] border border-[#ececec] bg-[rgba(255,255,255,0.78)] px-5 py-[21px] backdrop-blur-[4px]">
-          <p class="mb-2 text-[15px] font-semibold text-[#111827]">
-            로그인하면 더 많은 기능을 사용할 수 있습니다.
-          </p>
-          <p class="mb-4 text-[12px] text-[#6b7280]">소싱 자동화 기능을 바로 사용해보세요.</p>
-
-          <div class="flex flex-wrap justify-center gap-[10px]">
-            <button class="min-h-[38px] w-full rounded-md bg-[#ff7b39] px-[17px] text-[13px] font-bold text-white hover:bg-[#ee864b] min-[641px]:w-auto min-[641px]:min-w-[119px]" @click="goToLogin">
-              로그인
-            </button>
-            <button class="min-h-[38px] w-full rounded-md border border-[#d1d5db] bg-white px-[17px] text-[13px] font-bold text-[#374151] hover:bg-[#f9fafb] min-[641px]:w-auto min-[641px]:min-w-[119px]" @click="goToSignup">
-              회원가입
-            </button>
-          </div>
+        <!-- 버튼 -->
+        <div class="flex justify-center">
+          <button class="h-[52px] w-full max-w-[320px] rounded-lg bg-[#ff7b39] px-8 text-[15px] font-bold text-white transition-colors hover:bg-[#ee864b] min-[641px]:w-auto" @click="isLoggedIn ? goToSourcing() : goToSignup()">
+            {{ isLoggedIn ? '소싱 시작하기' : '회원가입하고 시작하기' }}
+          </button>
         </div>
 
         <!-- 에러 메시지 -->
-        <div v-if="error" class="mx-auto mt-[14px] max-w-[504px] rounded-[7px] border border-[#ffcccc] bg-[#fff0f0] px-[11px] py-[10px] text-[12px] font-semibold text-[#d93025]">
+        <div v-if="error" class="mx-auto mt-10 max-w-[504px] rounded-lg border border-[#ffcccc] bg-[#fff0f0] px-4 py-3 text-[14px] font-semibold text-[#d93025]">
           {{ error }}
         </div>
       </div>

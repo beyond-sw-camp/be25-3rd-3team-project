@@ -143,7 +143,7 @@ router.beforeEach(async (to) => {
   let isLoggedIn = false
 
   try {
-    await api.get('/users/me')
+    await api.get('/api/users/me')
     isLoggedIn = true
   } catch {
     isLoggedIn = false
