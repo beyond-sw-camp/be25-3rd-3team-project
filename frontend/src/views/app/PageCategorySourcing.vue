@@ -1,11 +1,12 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 import {
-  mapAutoSourcingToRows,
-  postSourcingAuto,
-} from '../../api/sourcingApi.js'
+  executeCategorySourcingSearch,
+  resetCategorySourcingResults,
+  useCategorySourcingSession,
+} from '../../composables/useCategorySourcingSession.js'
 
 const filters = [
   { title: '브랜드 유형', hint: '브랜드 유형을 선택하세요.' },
@@ -13,7 +14,7 @@ const filters = [
     title: '시장 규모',
     hint: '슬라이더를 드래그해 0억 ~ 1000억 범위에서 선택하세요.',
   },
-  { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10).' },
+  { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10)' },
 ]
 const months = [
   '1월', '2월', '3월', '4월', '5월', '6월',
@@ -25,25 +26,15 @@ const itemCount = ref(1)
 const filterChoices = ref(['brand', '1'])
 const marketSizeEok = ref(0)
 
-// ── 소싱 검색 상태 ──
-const loading = ref(false)
-const searchElapsed = ref(0)
-let searchTimer = null
-const SLOW_THRESHOLD = 15
-
-const error = ref('')
 const info = ref('')
-const rows = ref([])
-const lastMeta = ref({ at: '', count: 0, elapsed: null })
-
-function startSearchTimer() {
-  searchElapsed.value = 0
-  searchTimer = setInterval(() => { searchElapsed.value++ }, 1000)
-}
-function stopSearchTimer() {
-  if (searchTimer != null) { clearInterval(searchTimer); searchTimer = null }
-}
-onBeforeUnmount(() => { stopSearchTimer() })
+const {
+  loading,
+  searchElapsed,
+  error,
+  rows,
+  lastMeta,
+  SLOW_THRESHOLD,
+} = useCategorySourcingSession()
 
 const resultSummary = computed(() => {
   const m = lastMeta.value
@@ -78,70 +69,27 @@ function resetFilters() {
   itemCount.value = 1
   filterChoices.value = ['brand', '1']
   marketSizeEok.value = 0
-  rows.value = []
-  error.value = ''
+  resetCategorySourcingResults()
   info.value = ''
-  lastMeta.value = { at: '', count: 0, elapsed: null }
 }
 
 function stubLoadCategory() {
   info.value = '저장된 카테고리를 불러오는 API는 추후 연동 예정입니다.'
 }
 
-// ── 소싱 검색 ──
 async function runSearch() {
-  error.value = ''
   info.value = ''
   if (selectedMonths.value.length === 0) {
     error.value = '계절성으로 쓸 달을 하나 이상 선택하세요.'
     return
   }
 
-  loading.value = true
-  startSearchTimer()
-  try {
-    const body = {
-      seasons: [...selectedMonths.value],
-      banned_words: [],
-      item_count: itemCount.value,
-    }
-    const { ok, status, data } = await postSourcingAuto(body)
-
-    if (!ok) {
-      error.value =
-        data && typeof data === 'object' && data.message != null
-          ? String(data.message)
-          : `요청 실패 (${status})`
-      rows.value = []
-      lastMeta.value = { at: formatNow(), count: 0, elapsed: null }
-      return
-    }
-    if (data && data.status === 'error') {
-      error.value = data.message != null ? String(data.message) : '소싱 서버 오류'
-      rows.value = []
-      lastMeta.value = { at: formatNow(), count: 0, elapsed: null }
-      return
-    }
-
-    const mapped = mapAutoSourcingToRows(data?.keywords, data?.results, body.seasons, body.item_count)
-    rows.value = mapped
-    lastMeta.value = {
-      at: formatNow(),
-      count: mapped.length,
-      elapsed: data?.elapsed != null ? data.elapsed : null,
-    }
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : '네트워크 오류'
-    rows.value = []
-  } finally {
-    stopSearchTimer()
-    loading.value = false
+  const body = {
+    seasons: [...selectedMonths.value],
+    banned_words: [],
+    item_count: itemCount.value,
   }
-}
-
-function formatNow() {
-  const d = new Date()
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} 기준`
+  await executeCategorySourcingSearch(body)
 }
 </script>
 
@@ -219,7 +167,7 @@ function formatNow() {
       <!-- 액션 버튼 -->
       <div class="mt-4 flex flex-wrap gap-2">
         <button type="button" :disabled="loading"
-          class="rounded border border-point bg-point/10 px-4 py-2 text-sm text-point hover:bg-point/20 disabled:opacity-50"
+          class="rounded border border-point bg-point px-4 py-2 text-sm font-medium text-white hover:brightness-95 disabled:opacity-50"
           @click="runSearch">
           {{ loading ? '검색 중…' : '검색하기' }}
         </button>
@@ -235,13 +183,16 @@ function formatNow() {
         </button>
       </div>
 
-      <!-- ── 소싱 로딩 바 ── -->
+      <!-- ── 소싱 로딩 바 (페이지 이탈 후에도 세션 유지) ── -->
       <div v-if="loading" class="mt-4 space-y-2">
         <div class="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
           <div class="loading-bar h-full rounded-full bg-point" />
         </div>
         <p class="text-sm text-neutral-600">
           소싱 진행 중… <span class="font-medium tabular-nums">{{ searchElapsed }}초</span> 경과
+        </p>
+        <p class="text-xs text-neutral-500">
+          다른 메뉴로 나가도 요청은 브라우저에서 계속 진행됩니다. 다시 이 페이지로 오면 로딩·경과 시간·완료 후 결과가 이어집니다.
         </p>
         <p v-if="searchElapsed >= SLOW_THRESHOLD" class="text-sm text-amber-600">
           상품의 옵션이 많은 경우 소싱하는 데 2~10분 정도 걸릴 수도 있습니다.
