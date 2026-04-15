@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="45915adf-0d55-4df4-a3e2-b4ba72b54852" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/FindPasswordView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/FindPasswordView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/LoginView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ProfileDeleteView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ProfileDeleteView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ProfileEditView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ProfileEditView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/ProfileView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/ProfileView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/SignupView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/views/SignupView.vue" afterDir="false" />
-    </list>
+    <list default="true" id="45915adf-0d55-4df4-a3e2-b4ba72b54852" name="변경" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -112,7 +104,7 @@
       <workItem from="1776133893900" duration="21568000" />
       <workItem from="1776174871866" duration="385000" />
       <workItem from="1776175583997" duration="300000" />
-      <workItem from="1776211987201" duration="5947000" />
+      <workItem from="1776211987201" duration="7053000" />
     </task>
     <servers />
   </component>
