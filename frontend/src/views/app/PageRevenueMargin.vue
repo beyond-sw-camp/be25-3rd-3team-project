@@ -1,63 +1,18 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Doughnut } from 'vue-chartjs'
-import {
-  ArcElement,
-  Chart as ChartJS,
-  Legend,
-  Tooltip,
-} from 'chart.js'
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js'
+import { getMarginSummary, getRevenueProducts } from '../../api/revenueApi'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
-// ── 더미 데이터 ──────────────────────────────────────────
+// ── 차트 설정 ─────────────────────────────────────────────
 const CHART_COLORS = {
-  원가: '#6366f1',
-  플랫폼수수료: '#f59e0b',
-  배송비: '#3b82f6',
-  운영비: '#a3a3a3',
-  마진: '#22c55e',
-}
-
-const expectedData = {
-  totalMargin: 660000,
-  marginRate: 23.5,
-  원가: 1200000,
-  플랫폼수수료: 280000,
-  배송비: 150000,
-  운영비: 520000,
-  마진: 660000,
-}
-
-const actualData = {
-  totalMargin: 596000,
-  marginRate: 21.2,
-  원가: 1200000,
-  플랫폼수수료: 310000,
-  배송비: 170000,
-  운영비: 540000,
-  마진: 596000,
-}
-
-function toChartData(data) {
-  return {
-    labels: ['상품 원가', '플랫폼 수수료', '배송비', '운영비', '실제 마진'],
-    datasets: [
-      {
-        data: [data.원가, data.플랫폼수수료, data.배송비, data.운영비, data.마진],
-        backgroundColor: [
-          CHART_COLORS.원가,
-          CHART_COLORS.플랫폼수수료,
-          CHART_COLORS.배송비,
-          CHART_COLORS.운영비,
-          CHART_COLORS.마진,
-        ],
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 6,
-      },
-    ],
-  }
+  원가: '#ff7a33',
+  플랫폼수수료: '#ffae85',
+  배송비: '#ffd7c2',
+  운영비: '#1d2d50',
+  마진: '#ff5c04',
 }
 
 const chartOptions = {
@@ -87,60 +42,70 @@ const chartOptions = {
   },
 }
 
-// ── 테이블 더미 데이터 ────────────────────────────────────
-const tableRows = [
-  {
-    registeredAt: '2026-03-10 09:21',
-    productName: '무선 블루투스 이어폰 ANC',
-    salePrice: 89000,
-    margin: 18000,
-    reviewCount: 312,
-    orderCount: 24,
-  },
-  {
-    registeredAt: '2026-03-12 14:05',
-    productName: '스마트 LED 스탠드 (3단 밝기)',
-    salePrice: 45000,
-    margin: 9500,
-    reviewCount: 180,
-    orderCount: 11,
-  },
-  {
-    registeredAt: '2026-03-15 11:47',
-    productName: '폴더블 키보드 미니 (휴대용)',
-    salePrice: 62000,
-    margin: 13000,
-    reviewCount: 95,
-    orderCount: 7,
-  },
-  {
-    registeredAt: '2026-03-18 16:30',
-    productName: '차량용 무선 충전 거치대',
-    salePrice: 38000,
-    margin: 8200,
-    reviewCount: 450,
-    orderCount: 33,
-  },
-  {
-    registeredAt: '2026-03-21 10:15',
-    productName: '초경량 접이식 캠핑 의자',
-    salePrice: 73000,
-    margin: 15500,
-    reviewCount: 67,
-    orderCount: 5,
-  },
-]
+function toChartData(data) {
+  return {
+    labels: ['상품 원가', '플랫폼 수수료', '배송비', '운영비', '실제 마진'],
+    datasets: [
+      {
+        data: [
+          data?.productCost ?? 0,
+          data?.platformFee ?? 0,
+          data?.shippingFee ?? 0,
+          data?.operatingCost ?? 0,
+          data?.margin ?? 0,
+        ],
+        backgroundColor: [
+          CHART_COLORS.원가,
+          CHART_COLORS.플랫폼수수료,
+          CHART_COLORS.배송비,
+          CHART_COLORS.운영비,
+          CHART_COLORS.마진,
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 6,
+      },
+    ],
+  }
+}
 
+// ── 상태 ──────────────────────────────────────────────────
+const loading = ref(false)
+const errorMessage = ref('')
+
+const expectedData = ref(null)
+const actualData = ref(null)
+const tableRows = ref([])
+
+// ── API 호출 ──────────────────────────────────────────────
+async function loadData() {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    const [summary, products] = await Promise.all([getMarginSummary(), getRevenueProducts()])
+    expectedData.value = summary?.expected ?? null
+    actualData.value = summary?.actual ?? null
+    tableRows.value = Array.isArray(products) ? products : []
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '데이터를 불러오지 못했습니다.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadData)
+
+// ── 계산 함수 ─────────────────────────────────────────────
 function calcExpectedSales(row) {
-  return row.reviewCount * row.salePrice
+  return (row.reviewCount ?? 0) * (row.salePrice ?? 0)
 }
 
 function calcActualSales(row) {
-  return row.orderCount * row.salePrice
+  return (row.orderCount ?? 0) * (row.salePrice ?? 0)
 }
 
 function calcActualProfit(row) {
-  return row.orderCount * row.margin
+  return (row.orderCount ?? 0) * (row.marginPerUnit ?? 0)
 }
 
 function calcProfitRateDiff(row) {
@@ -152,7 +117,13 @@ function calcProfitRateDiff(row) {
 }
 
 function formatKrw(value) {
-  return `₩${value.toLocaleString('ko-KR')}`
+  if (value == null) return '-'
+  return `₩${Number(value).toLocaleString('ko-KR')}`
+}
+
+function formatRate(value) {
+  if (value == null) return '-'
+  return `${Number(value).toFixed(1)}%`
 }
 
 // ── 팝업 ──────────────────────────────────────────────────
@@ -169,20 +140,36 @@ function closeDetail() {
 
 <template>
   <div>
+    <!-- 에러 메시지 -->
+    <p
+      v-if="errorMessage"
+      class="mb-5 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+    >
+      {{ errorMessage }}
+    </p>
+
     <!-- ═══ 도넛 차트 카드 ═══ -->
     <div class="grid gap-6 lg:grid-cols-2">
       <!-- 예상 마진 카드 -->
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <p class="text-sm font-medium text-neutral-500">예상 마진</p>
         <div class="mt-1 flex items-baseline gap-2">
-          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(expectedData.totalMargin) }}</p>
-          <p class="text-sm text-neutral-400">예상 수익률 {{ expectedData.marginRate }}%</p>
+          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(expectedData?.margin) }}</p>
+          <p class="text-sm text-neutral-400">예상 수익률 {{ formatRate(expectedData?.marginRate) }}</p>
         </div>
         <div class="relative mt-6 h-64">
-          <Doughnut :data="toChartData(expectedData)" :options="chartOptions" />
-          <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
-            <p class="text-xs text-neutral-400">총 예상 마진</p>
-            <p class="text-base font-bold text-neutral-800">{{ formatKrw(expectedData.totalMargin) }}</p>
+          <div v-if="loading" class="flex h-full items-center justify-center text-sm text-neutral-400">
+            불러오는 중…
+          </div>
+          <template v-else-if="expectedData">
+            <Doughnut :data="toChartData(expectedData)" :options="chartOptions" />
+            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+              <p class="text-xs text-neutral-400">총 예상 마진</p>
+              <p class="text-base font-bold text-neutral-800">{{ formatKrw(expectedData?.margin) }}</p>
+            </div>
+          </template>
+          <div v-else class="flex h-full items-center justify-center text-sm text-neutral-400">
+            데이터 없음
           </div>
         </div>
       </div>
@@ -191,14 +178,22 @@ function closeDetail() {
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <p class="text-sm font-medium text-neutral-500">실제 마진</p>
         <div class="mt-1 flex items-baseline gap-2">
-          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(actualData.totalMargin) }}</p>
-          <p class="text-sm text-neutral-400">실제 수익률 {{ actualData.marginRate }}%</p>
+          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(actualData?.margin) }}</p>
+          <p class="text-sm text-neutral-400">실제 수익률 {{ formatRate(actualData?.marginRate) }}</p>
         </div>
         <div class="relative mt-6 h-64">
-          <Doughnut :data="toChartData(actualData)" :options="chartOptions" />
-          <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
-            <p class="text-xs text-neutral-400">총 실제 마진</p>
-            <p class="text-base font-bold text-neutral-800">{{ formatKrw(actualData.totalMargin) }}</p>
+          <div v-if="loading" class="flex h-full items-center justify-center text-sm text-neutral-400">
+            불러오는 중…
+          </div>
+          <template v-else-if="actualData">
+            <Doughnut :data="toChartData(actualData)" :options="chartOptions" />
+            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-10">
+              <p class="text-xs text-neutral-400">총 실제 마진</p>
+              <p class="text-base font-bold text-neutral-800">{{ formatKrw(actualData?.margin) }}</p>
+            </div>
+          </template>
+          <div v-else class="flex h-full items-center justify-center text-sm text-neutral-400">
+            데이터 없음
           </div>
         </div>
       </div>
@@ -219,20 +214,31 @@ function closeDetail() {
           </tr>
         </thead>
         <tbody>
+          <tr v-if="loading">
+            <td colspan="7" class="px-4 py-10 text-center text-neutral-400">불러오는 중…</td>
+          </tr>
+          <tr v-else-if="tableRows.length === 0">
+            <td colspan="7" class="px-4 py-10 text-center text-neutral-400">데이터가 없습니다.</td>
+          </tr>
           <tr
             v-for="(row, i) in tableRows"
-            :key="i"
+            v-else
+            :key="row.coupangProductId ?? i"
             class="border-b border-neutral-100 last:border-0 hover:bg-neutral-50"
           >
-            <td class="px-4 py-4 text-neutral-600">{{ row.registeredAt }}</td>
-            <td class="px-4 py-4 font-medium">{{ row.orderCount }}건</td>
+            <td class="px-4 py-4 text-neutral-600">{{ row.registeredAt ?? '-' }}</td>
+            <td class="px-4 py-4 font-medium">{{ row.orderCount ?? 0 }}건</td>
             <td class="px-4 py-4">{{ formatKrw(calcExpectedSales(row)) }}</td>
             <td class="px-4 py-4">{{ formatKrw(calcActualSales(row)) }}</td>
             <td class="px-4 py-4 font-semibold">{{ formatKrw(calcActualProfit(row)) }}</td>
-            <td class="px-4 py-4 font-medium"
+            <td
+              class="px-4 py-4 font-medium"
               :class="Number(calcProfitRateDiff(row)) >= 0 ? 'text-emerald-600' : 'text-red-500'"
             >
-              {{ calcProfitRateDiff(row) !== '-' ? (Number(calcProfitRateDiff(row)) >= 0 ? '+' : '') + calcProfitRateDiff(row) + '%' : '-' }}
+              <template v-if="calcProfitRateDiff(row) !== '-'">
+                {{ Number(calcProfitRateDiff(row)) >= 0 ? '+' : '' }}{{ calcProfitRateDiff(row) }}%
+              </template>
+              <template v-else>-</template>
             </td>
             <td class="px-4 py-4">
               <button
@@ -260,25 +266,32 @@ function closeDetail() {
             <p class="font-semibold text-neutral-900">판매 상품 상세</p>
             <button type="button" class="text-neutral-400 hover:text-neutral-600" @click="closeDetail">✕</button>
           </div>
-
-          <p class="mt-1 text-sm text-neutral-500">{{ selectedRow.productName }}</p>
+          <p class="mt-1 text-sm text-neutral-500">{{ selectedRow.productName ?? '-' }}</p>
 
           <div class="mt-5 space-y-3 text-sm">
             <div class="flex justify-between border-b border-neutral-100 pb-2">
               <span class="text-neutral-500">상품 등록 일시</span>
-              <span class="font-medium">{{ selectedRow.registeredAt }}</span>
+              <span class="font-medium">{{ selectedRow.registeredAt ?? '-' }}</span>
             </div>
             <div class="flex justify-between border-b border-neutral-100 pb-2">
               <span class="text-neutral-500">판매가</span>
               <span class="font-medium">{{ formatKrw(selectedRow.salePrice) }}</span>
             </div>
             <div class="flex justify-between border-b border-neutral-100 pb-2">
+              <span class="text-neutral-500">단위 마진</span>
+              <span class="font-medium">{{ formatKrw(selectedRow.marginPerUnit) }}</span>
+            </div>
+            <div class="flex justify-between border-b border-neutral-100 pb-2">
+              <span class="text-neutral-500">마진율</span>
+              <span class="font-medium">{{ formatRate(selectedRow.marginRate) }}</span>
+            </div>
+            <div class="flex justify-between border-b border-neutral-100 pb-2">
               <span class="text-neutral-500">소싱 리뷰 수</span>
-              <span class="font-medium">{{ selectedRow.reviewCount.toLocaleString('ko-KR') }}개</span>
+              <span class="font-medium">{{ (selectedRow.reviewCount ?? 0).toLocaleString('ko-KR') }}개</span>
             </div>
             <div class="flex justify-between border-b border-neutral-100 pb-2">
               <span class="text-neutral-500">실제 주문 수</span>
-              <span class="font-medium">{{ selectedRow.orderCount }}건</span>
+              <span class="font-medium">{{ selectedRow.orderCount ?? 0 }}건</span>
             </div>
             <div class="flex justify-between border-b border-neutral-100 pb-2">
               <span class="text-neutral-500">예상 매출</span>
@@ -298,7 +311,10 @@ function closeDetail() {
                 class="font-semibold"
                 :class="Number(calcProfitRateDiff(selectedRow)) >= 0 ? 'text-emerald-600' : 'text-red-500'"
               >
-                {{ calcProfitRateDiff(selectedRow) !== '-' ? (Number(calcProfitRateDiff(selectedRow)) >= 0 ? '+' : '') + calcProfitRateDiff(selectedRow) + '%' : '-' }}
+                <template v-if="calcProfitRateDiff(selectedRow) !== '-'">
+                  {{ Number(calcProfitRateDiff(selectedRow)) >= 0 ? '+' : '' }}{{ calcProfitRateDiff(selectedRow) }}%
+                </template>
+                <template v-else>-</template>
               </span>
             </div>
           </div>
