@@ -11,7 +11,6 @@ const CHART_COLORS = {
   원가: '#ff7a33',
   플랫폼수수료: '#ffae85',
   배송비: '#ffd7c2',
-  운영비: '#1d2d50',
   마진: '#ff5c04',
 }
 
@@ -44,21 +43,19 @@ const chartOptions = {
 
 function toChartData(data) {
   return {
-    labels: ['상품 원가', '플랫폼 수수료', '배송비', '운영비', '실제 마진'],
+    labels: ['상품 원가', '플랫폼 수수료', '배송비',  '실제 마진'],
     datasets: [
       {
         data: [
           data?.productCost ?? 0,
           data?.platformFee ?? 0,
           data?.shippingFee ?? 0,
-          data?.operatingCost ?? 0,
           data?.margin ?? 0,
         ],
         backgroundColor: [
           CHART_COLORS.원가,
           CHART_COLORS.플랫폼수수료,
           CHART_COLORS.배송비,
-          CHART_COLORS.운영비,
           CHART_COLORS.마진,
         ],
         borderWidth: 2,
@@ -95,7 +92,7 @@ async function loadData() {
 
 onMounted(loadData)
 
-// ── 계산 함수 ─────────────────────────────────────────────
+// 계산 함수 
 function calcExpectedSales(row) {
   return (row.reviewCount ?? 0) * (row.salePrice ?? 0)
 }
