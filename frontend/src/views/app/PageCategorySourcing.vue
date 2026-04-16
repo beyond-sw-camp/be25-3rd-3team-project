@@ -196,9 +196,6 @@ async function runSearch() {
         </div>
       </div>
 
-      <p class="mt-4 text-xs text-neutral-500">
-        소싱 API는 계절(월)·시즌당 개수만 사용합니다. 브랜드 유형·시장 규모는 UI만 유지됩니다.
-      </p>
 
       <!-- 월 선택 -->
       <div class="mt-6 flex flex-wrap justify-center gap-2">
