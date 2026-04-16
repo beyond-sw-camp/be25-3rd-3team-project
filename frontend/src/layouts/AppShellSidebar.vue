@@ -95,11 +95,7 @@ const collapsedSidebarItems = computed(() =>
       >
         <Menu :size="22" />
       </button>
-      <RouterLink
-        v-if="!collapsed"
-        to="/"
-        class="text-[25px] font-bold text-point no-underline"
-      >
+      <RouterLink v-if="!collapsed" to="/" class="text-[25px] font-bold text-point no-underline">
         AutoSource
       </RouterLink>
     </div>

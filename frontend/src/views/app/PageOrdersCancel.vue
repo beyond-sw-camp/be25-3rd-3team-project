@@ -2,13 +2,9 @@
 import BaseStatCard from '../../components/common/BaseStatCard.vue'
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 import OrderListBlock from '../../components/sidebar/OrderListBlock.vue'
+import { useOrdersDashboard } from '../../composables/useOrdersDashboard'
 
-const stats = [
-  { label: '오늘 수집한 상품', value: '—', tone: 'muted' },
-  { label: '취소 완료', value: 50, tone: 'primary' },
-  { label: '자동 주문 처리 중', value: 6 },
-  { label: '재시도 대기 중', value: 6, tone: 'warning' },
-]
+const { stats, rows, loading, error } = useOrdersDashboard('cancel')
 </script>
 
 <template>
@@ -26,6 +22,13 @@ const stats = [
         />
       </div>
     </section>
-    <OrderListBlock title="주문 목록" summary-label="취소/환불 건수" />
+
+    <OrderListBlock
+      title="취소/환불 주문 목록"
+      summary-label="취소/환불"
+      :rows="rows"
+      :loading="loading"
+      :error="error"
+    />
   </div>
 </template>

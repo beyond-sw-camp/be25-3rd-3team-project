@@ -1,16 +1,12 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 
-const imgPackage =
-  'https://www.figma.com/api/mcp/asset/5d132d2f-57ad-4b86-a29b-b785ebf6b48e'
-const imgSend =
-  'https://www.figma.com/api/mcp/asset/41d128b1-2af3-42da-82e6-c7dc79cf87dc'
+const imgPackage = 'https://www.figma.com/api/mcp/asset/5d132d2f-57ad-4b86-a29b-b785ebf6b48e'
+const imgSend = 'https://www.figma.com/api/mcp/asset/41d128b1-2af3-42da-82e6-c7dc79cf87dc'
 </script>
 
 <template>
-  <div
-    class="relative min-h-svh w-full overflow-hidden bg-white font-sans text-neutral-900"
-  >
+  <div class="relative min-h-svh w-full overflow-hidden bg-white font-sans text-neutral-900">
     <!-- 장식: 패키지 (좌상단) -->
     <div
       class="pointer-events-none absolute -left-[8.5rem] -top-[7.5rem] h-[36.8rem] w-[39.2rem] overflow-hidden max-md:opacity-40"
@@ -67,14 +63,10 @@ const imgSend =
     <main
       class="relative z-[1] flex min-h-svh flex-col items-center justify-center px-4 pb-24 pt-28 text-center sm:pb-32 sm:pt-32"
     >
-      <h1
-        class="font-bold leading-none text-point sm:text-7xl md:text-8xl lg:text-[100px]"
-      >
+      <h1 class="font-bold leading-none text-point sm:text-7xl md:text-8xl lg:text-[100px]">
         AutoSource
       </h1>
-      <p
-        class="mt-3 text-lg font-medium text-sub sm:text-xl md:mt-4 md:text-[20px]"
-      >
+      <p class="mt-3 text-lg font-medium text-sub sm:text-xl md:mt-4 md:text-[20px]">
         Sourcing Automation System
       </p>
       <ul

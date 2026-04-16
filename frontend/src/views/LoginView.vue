@@ -4,10 +4,8 @@ import { RouterLink, useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const imgPackage =
-  'https://www.figma.com/api/mcp/asset/9b3f6b40-e76d-45fe-bb6f-c4ce378c0a54'
-const imgSend =
-  'https://www.figma.com/api/mcp/asset/2190b7a2-2812-4e74-ad1a-a278b2780722'
+const imgPackage = 'https://www.figma.com/api/mcp/asset/9b3f6b40-e76d-45fe-bb6f-c4ce378c0a54'
+const imgSend = 'https://www.figma.com/api/mcp/asset/2190b7a2-2812-4e74-ad1a-a278b2780722'
 
 const userId = ref('')
 const password = ref('')
@@ -51,7 +49,9 @@ function onSubmit(e) {
         </div>
       </div>
 
-      <div class="relative z-[1] flex h-full flex-col justify-center px-8 py-12 sm:px-12 md:px-16 lg:pl-20">
+      <div
+        class="relative z-[1] flex h-full flex-col justify-center px-8 py-12 sm:px-12 md:px-16 lg:pl-20"
+      >
         <h2
           class="max-w-[553px] text-3xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-[70px] lg:leading-[1.15]"
         >
@@ -59,7 +59,9 @@ function onSubmit(e) {
           <span class="block">소싱 자동화를</span>
           <span class="block">경험하세요</span>
         </h2>
-        <p class="mt-8 max-w-md text-base font-medium text-white/95 sm:mt-10 sm:text-lg md:text-[20px]">
+        <p
+          class="mt-8 max-w-md text-base font-medium text-white/95 sm:mt-10 sm:text-lg md:text-[20px]"
+        >
           Sourcing Automation System
           <br />
           - AutoSource
