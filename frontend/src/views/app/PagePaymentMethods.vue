@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
 import BaseButton from '../../components/common/BaseButton.vue'
+import {
+  deleteCard as deleteCardRequest,
+  getCardDetail,
+  getCards,
+  postCard,
+  toggleCard as toggleCardRequest,
+} from '../../api/cardApi.js'
 
-const API = 'http://localhost:8083/cards'
-
-/* 카드 정보 */
+/* 카드 정보 — 요청은 공통 api(/gateway) → Vite 프록시 → API Gateway → 유레카 인스턴스 */
 
 const cards = ref([])
 
@@ -22,18 +26,13 @@ expiry:''
 
 /* ---------------- 카드 목록 로드 ---------------- */
 
-async function loadCards(){
-
-try{
-
-const res = await axios.get(API)
-
-cards.value = res.data
-
-}catch(e){
-console.error(e)
-}
-
+async function loadCards() {
+  try {
+    const res = await getCards()
+    cards.value = Array.isArray(res.data) ? res.data : res.data?.content ?? []
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 /* ---------------- 페이지네이션 ---------------- */
@@ -124,7 +123,7 @@ expiry:newCard.value.expiry
 
 console.log("보내는 카드번호:", body.cardNumber)
 
-await axios.post(API, body)
+    await postCard(body)
 
 showAdd.value = false
 
@@ -151,7 +150,7 @@ async function removeCard(id){
 
 if(confirm('카드를 삭제할까요?')){
 
-await axios.delete(`${API}/${id}`)
+    await deleteCardRequest(id)
 
 await loadCards()
 
@@ -163,17 +162,14 @@ currentPage.value = totalPages.value
 
 }
 
-async function toggleCard(id){
-
-await axios.patch(`${API}/${id}/toggle`)
-
-await loadCards()
-
+async function flipCardActive(id) {
+  await toggleCardRequest(id)
+  await loadCards()
 }
 
 async function openDetail(card){
 
-const res = await axios.get(`${API}/${card.id}/decrypt`)
+    const res = await getCardDetail(card.id)
 
 detail.value = res.data
 
@@ -226,7 +222,7 @@ class="card"
 
 <div class="card-overlay">
 
-<button @click.stop="toggleCard(card.id)">
+<button @click.stop="flipCardActive(card.id)">
 {{card.active ? '비활성' : '활성'}}
 </button>
 
