@@ -1,16 +1,16 @@
 import { computed, onMounted, ref } from 'vue'
-import { fetchOrderManagement, fetchOrders } from '../api/orders'
+import { fetchOrderManagement, fetchOrders, fetchShipmentByOrderId } from '../api/orders'
 
 function normalizeAutoStatus(value) {
   if (!value) return '-'
 
   const map = {
-    Ready: '주문 준비 중',
-    Ordered: '주문 완료',
-    FAILED: '주문 실패',
-    Shipping: '배송 중',
-    SHIPPING: '배송 중',
-    DELIVERED: '배송 완료',
+    Ready: '\uC8FC\uBB38 \uC900\uBE44 \uC911',
+    Ordered: '\uC8FC\uBB38 \uC644\uB8CC',
+    FAILED: '\uC8FC\uBB38 \uC2E4\uD328',
+    Shipping: '\uBC30\uC1A1 \uC911',
+    SHIPPING: '\uBC30\uC1A1 \uC911',
+    DELIVERED: '\uBC30\uC1A1 \uC644\uB8CC',
   }
 
   return map[value] || value
@@ -20,17 +20,52 @@ function normalizeOrderStatus(value) {
   if (!value) return '-'
 
   const map = {
-    CREATED: '생성됨',
-    PAID: '결제 완료',
-    FAILED: '주문 실패',
-    CANCELLED: '취소 완료',
-    CANCELED: '취소 완료',
+    CREATED: '\uC0DD\uC131\uB428',
+    PAID: '\uACB0\uC81C \uC644\uB8CC',
+    FAILED: '\uC8FC\uBB38 \uC2E4\uD328',
+    CANCELLED: '\uCDE8\uC18C \uC644\uB8CC',
+    CANCELED: '\uCDE8\uC18C \uC644\uB8CC',
   }
 
   return map[value] || value
 }
 
-function createRowFromOrder(order) {
+function normalizeShipmentStatus(value) {
+  if (!value) return '-'
+
+  const map = {
+    READY: '\uBC30\uC1A1 \uC900\uBE44 \uC911',
+    SHIPPING: '\uBC30\uC1A1 \uC911',
+    DELIVERED: '\uBC30\uC1A1 \uC644\uB8CC',
+  }
+
+  return map[value] || value
+}
+
+async function loadShipmentMap(orders) {
+  const results = await Promise.allSettled(
+    orders.map(async (order) => {
+      const shipment = await fetchShipmentByOrderId(order.id)
+      return [order.id, shipment]
+    }),
+  )
+
+  const shipmentMap = new Map()
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      const [orderId, shipment] = result.value
+      shipmentMap.set(orderId, shipment)
+    }
+  }
+
+  return shipmentMap
+}
+
+function createRowFromOrder(order, shipmentMap) {
+  const shipment = shipmentMap.get(order.id) || null
+  const shipmentStatus = shipment?.status || ''
+
   return {
     orderId: order.id,
     createdAt: order.createdAt || '',
@@ -39,13 +74,17 @@ function createRowFromOrder(order) {
     paymentAmount: order.totalAmount ?? 0,
     status: order.status || '-',
     statusLabel: normalizeOrderStatus(order.status),
-    displayStatusLabel: normalizeOrderStatus(order.status),
     customerName: order.customerName || '-',
     customerPhone: order.customerPhone || '-',
     customerAddress: order.customerAddress || '-',
     customsNumber: order.customsNumber || '-',
     autoOrderStatus: order.autoOrderStatus || '-',
     autoOrderStatusLabel: normalizeAutoStatus(order.autoOrderStatus),
+    shipmentId: shipment?.id ?? null,
+    shipmentStatus,
+    shipmentStatusLabel: normalizeShipmentStatus(shipmentStatus),
+    trackingNumber: shipment?.trackingNumber || '',
+    courier: shipment?.courier || '',
     overseasMall: order.overseasMall || '-',
     margin: order.margin ?? 0,
     dummyCoupangProductId: order.dummyCoupangProductId ?? null,
@@ -55,8 +94,10 @@ function createRowFromOrder(order) {
   }
 }
 
-function createRowFromManagement(item, orderMap) {
-  const rawOrder = orderMap.get(item.orderId)
+function createRowFromManagement(item, orderMap, shipmentMap) {
+  const rawOrder = orderMap.get(item.orderId) || null
+  const shipment = shipmentMap.get(item.orderId) || null
+  const shipmentStatus = shipment?.status || ''
 
   return {
     orderId: item.orderId,
@@ -66,13 +107,17 @@ function createRowFromManagement(item, orderMap) {
     paymentAmount: item.paymentAmount ?? rawOrder?.totalAmount ?? 0,
     status: rawOrder?.status || '-',
     statusLabel: normalizeOrderStatus(rawOrder?.status),
-    displayStatusLabel: normalizeAutoStatus(item.autoOrderStatus || rawOrder?.autoOrderStatus),
     customerName: item.customerName || rawOrder?.customerName || '-',
     customerPhone: item.customerPhone || rawOrder?.customerPhone || '-',
     customerAddress: item.customerAddress || rawOrder?.customerAddress || '-',
     customsNumber: item.customsNumber || rawOrder?.customsNumber || '-',
     autoOrderStatus: item.autoOrderStatus || rawOrder?.autoOrderStatus || '-',
     autoOrderStatusLabel: normalizeAutoStatus(item.autoOrderStatus || rawOrder?.autoOrderStatus),
+    shipmentId: shipment?.id ?? null,
+    shipmentStatus,
+    shipmentStatusLabel: normalizeShipmentStatus(shipmentStatus),
+    trackingNumber: shipment?.trackingNumber || '',
+    courier: shipment?.courier || '',
     overseasMall: item.overseasMall || rawOrder?.overseasMall || '-',
     margin: item.margin ?? rawOrder?.margin ?? 0,
     dummyCoupangProductId:
@@ -95,15 +140,16 @@ export function useOrdersDashboard(mode = 'all') {
     try {
       const [orders, management] = await Promise.all([fetchOrders(), fetchOrderManagement()])
       const orderMap = new Map(orders.map((order) => [order.id, order]))
+      const shipmentMap = await loadShipmentMap(orders)
 
       if (mode === 'all') {
-        rows.value = orders.map(createRowFromOrder)
-        return
+        rows.value = orders.map((order) => createRowFromOrder(order, shipmentMap))
+      } else {
+        rows.value = management.map((item) => createRowFromManagement(item, orderMap, shipmentMap))
       }
-
-      rows.value = management.map((item) => createRowFromManagement(item, orderMap))
     } catch (e) {
-      error.value = e?.response?.data?.message || '주문 데이터를 불러오지 못했습니다.'
+      error.value =
+        e?.response?.data?.message || '\uC8FC\uBB38 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'
       rows.value = []
     } finally {
       loading.value = false
@@ -129,36 +175,34 @@ export function useOrdersDashboard(mode = 'all') {
     const orderedCount = source.filter((row) => row.autoOrderStatus === 'Ordered').length
     const failedCount = source.filter((row) => row.autoOrderStatus === 'FAILED').length
     const readyCount = source.filter((row) => row.autoOrderStatus === 'Ready').length
-    const shippingCount = source.filter(
-      (row) => row.autoOrderStatus === 'Shipping' || row.autoOrderStatus === 'SHIPPING',
-    ).length
+    const shippingCount = source.filter((row) => row.shipmentStatus === 'SHIPPING').length
     const cancelCount = source.filter(
       (row) => row.status === 'CANCELLED' || row.status === 'CANCELED',
     ).length
 
     if (mode === 'auto') {
       return [
-        { label: '자동 주문 전체', value: source.length, tone: 'muted' },
-        { label: '자동 주문 실패', value: failedCount, tone: 'danger' },
-        { label: '자동 주문 완료', value: orderedCount, tone: 'primary' },
-        { label: '주문 준비 중', value: readyCount, tone: 'warning' },
+        { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC804\uCCB4', value: source.length, tone: 'muted' },
+        { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC2E4\uD328', value: failedCount, tone: 'danger' },
+        { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC644\uB8CC', value: orderedCount, tone: 'primary' },
+        { label: '\uC8FC\uBB38 \uC900\uBE44 \uC911', value: readyCount, tone: 'warning' },
       ]
     }
 
     if (mode === 'cancel') {
       return [
-        { label: '취소/환불 전체', value: source.length, tone: 'muted' },
-        { label: '취소 완료', value: cancelCount, tone: 'primary' },
-        { label: '자동 주문 실패', value: failedCount, tone: 'danger' },
-        { label: '배송 중', value: shippingCount, tone: 'warning' },
+        { label: '\uCDE8\uC18C/\uD658\uBD88 \uC804\uCCB4', value: source.length, tone: 'muted' },
+        { label: '\uCDE8\uC18C \uC644\uB8CC', value: cancelCount, tone: 'primary' },
+        { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC2E4\uD328', value: failedCount, tone: 'danger' },
+        { label: '\uBC30\uC1A1 \uC911', value: shippingCount, tone: 'warning' },
       ]
     }
 
     return [
-      { label: '전체 주문', value: source.length, tone: 'muted' },
-      { label: '자동 주문 성공', value: orderedCount, tone: 'primary' },
-      { label: '자동 주문 실패', value: failedCount, tone: 'danger' },
-      { label: '배송 중', value: shippingCount, tone: 'warning' },
+      { label: '\uC804\uCCB4 \uC8FC\uBB38', value: source.length, tone: 'muted' },
+      { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC131\uACF5', value: orderedCount, tone: 'primary' },
+      { label: '\uC790\uB3D9 \uC8FC\uBB38 \uC2E4\uD328', value: failedCount, tone: 'danger' },
+      { label: '\uBC30\uC1A1 \uC911', value: shippingCount, tone: 'warning' },
     ]
   })
 

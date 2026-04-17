@@ -26,3 +26,15 @@ export const cancelOrder = async (orderId) => {
   const { data } = await http.patch(`/orders/${orderId}/cancel`)
   return data
 }
+
+export const fetchShipmentByOrderId = async (orderId) => {
+  const { data } = await http.get('/shipping/orderId', {
+    params: { orderId },
+  })
+  return data
+}
+
+export const updateShipmentStatus = async (shipmentId, status) => {
+  const { data } = await http.patch(`/shipping/${shipmentId}/status`, { status })
+  return data
+}
