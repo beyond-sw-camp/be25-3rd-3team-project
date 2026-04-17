@@ -129,10 +129,10 @@ defineExpose({ scrollToBottom })
     :class="tableScrollClass"
     :style="tableHeightStyle"
   >
-    <table class="w-full min-w-[720px] text-left text-sm">
+    <table class="w-full min-w-[1400px] text-sm">
       <thead class="sticky top-0 z-10 border-b border-neutral-100 bg-neutral-50 text-xs text-neutral-600">
         <tr>
-          <th class="w-12 px-4 py-3 font-medium">
+          <th class="w-12 px-4 py-3 align-middle text-center font-medium">
             <input
               v-model="allSelected"
               type="checkbox"
@@ -143,7 +143,7 @@ defineExpose({ scrollToBottom })
           <th
             v-for="column in columns"
             :key="column.key"
-            class="px-4 py-3 font-medium"
+            class="px-4 py-3 align-middle text-center font-medium"
             :class="column.headerClass"
           >
             {{ column.label }}
@@ -167,7 +167,7 @@ defineExpose({ scrollToBottom })
           class="cursor-pointer border-b border-neutral-100 last:border-0 hover:bg-neutral-50"
           @click="toggleRowByClick($event, getRowKey(row, index))"
         >
-          <td class="px-4 py-2">
+          <td class="px-4 py-4 align-middle text-center">
             <input
               type="checkbox"
               class="rounded border-neutral-300"
@@ -179,7 +179,7 @@ defineExpose({ scrollToBottom })
           <td
             v-for="column in columns"
             :key="column.key"
-            class="px-4 py-2"
+            class="px-4 py-4 align-middle text-center"
             :class="column.cellClass"
           >
             <slot :name="`cell-${column.key}`" :row="row" :index="index" :value="row[column.key]">

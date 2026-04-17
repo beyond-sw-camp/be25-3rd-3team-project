@@ -2,13 +2,32 @@
 import BaseStatCard from '../../components/common/BaseStatCard.vue'
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 import OrderListBlock from '../../components/sidebar/OrderListBlock.vue'
+import { useOrdersDashboard } from '../../composables/useOrdersDashboard'
+import { updateShipmentStatus } from '../../api/orders'
 
-const stats = [
-  { label: '오늘 수집한 상품', value: '—', tone: 'muted' },
-  { label: '자동 주문 성공', value: 50, tone: 'primary' },
-  { label: '자동 주문 실패', value: 6, tone: 'danger' },
-  { label: '송장 미등록', value: 11, tone: 'warning' },
-]
+const { stats, rows, loading, error, reload } = useOrdersDashboard('all')
+
+async function handleShipmentStatusChange(payload) {
+  if (!payload.shipmentId) {
+    console.warn('shipment create required', {
+      request: 'POST /shipping/create',
+      body: {
+        orderId: payload.orderId,
+        trackingNumber: 'TRK-123456',
+        courier: 'CJ',
+      },
+      nextStatus: payload.shipmentStatus,
+    })
+    return
+  }
+
+  try {
+    await updateShipmentStatus(payload.shipmentId, payload.shipmentStatus)
+    await reload()
+  } catch (error) {
+    console.error('failed to update shipment status', error)
+  }
+}
 </script>
 
 <template>
@@ -26,6 +45,15 @@ const stats = [
         />
       </div>
     </section>
-    <OrderListBlock />
+
+    <OrderListBlock
+      title="전체 주문 목록"
+      summary-label="전체 주문"
+      :rows="rows"
+      :loading="loading"
+      :error="error"
+      manageable
+      @shipment-status-change="handleShipmentStatusChange"
+    />
   </div>
 </template>

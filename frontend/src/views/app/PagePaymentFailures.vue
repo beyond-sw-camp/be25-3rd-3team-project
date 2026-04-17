@@ -1,32 +1,43 @@
 <script setup>
-import BaseSelect from '../../components/common/BaseSelect.vue'
+import { computed, onMounted, ref } from 'vue'
+import { fetchFailedOrders } from '../../api/orders'
 
-const summary = [
-  { label: '자동 결제 실패', value: '15', sub: '최근 7일 자동결제 실패 건수' },
-  { label: '한도 초과 감지', value: '12', sub: '하루 결제 한도 초과 시도' },
-  { label: '결제수단 차단 감지', value: '3', sub: '카드/ 결제 수단 차단 발생' },
-  { label: '로그인 차단 감지', value: '1', sub: '비정상 로그인 차단' },
-]
-const rows = [
-  {
-    when: '2026.03.16 17:54 결제 실패/ 일일 결제 한도 ₩3,000,000 초과',
-    type: '한도 초과 감지',
-    amount: '₩2,800,000/ 일일 한도 ₩3,000,000',
-    method: 'Amazon Prime',
-  },
-  {
-    when: '2026.03.16 18:26 결제 실패/ 잔액 부족',
-    type: '자동 결제 실패',
-    amount: '₩294,300/ ₩316,000',
-    method: 'VISA ****1254',
-  },
-  {
-    when: '2026.03.16 20:02 결제 실패/ 결제 오류',
-    type: '로그인 차단 감지',
-    amount: '₩256,000',
-    method: 'Smart Checkout',
-  },
-]
+const loading = ref(false)
+const error = ref('')
+const rows = ref([])
+
+const currency = (value) => new Intl.NumberFormat('ko-KR').format(value || 0)
+
+const load = async () => {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const data = await fetchFailedOrders()
+    rows.value = data
+  } catch (e) {
+    error.value = e?.response?.data?.message || '실패 주문 데이터를 불러오지 못했습니다.'
+    rows.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
+
+const summary = computed(() => {
+  const total = rows.value.length
+  const failed = rows.value.filter((row) => row.status === 'FAILED').length
+  const uniqueUsers = new Set(rows.value.map((row) => row.userId)).size
+  const totalAmount = rows.value.reduce((sum, row) => sum + (row.totalAmount || 0), 0)
+
+  return [
+    { label: '실패 주문 전체', value: total, sub: 'orders/failed 기준' },
+    { label: '실패 상태 주문', value: failed, sub: 'status = FAILED' },
+    { label: '실패 사용자 수', value: uniqueUsers, sub: '중복 제외 사용자 수' },
+    { label: '실패 주문 금액 합계', value: `₩${currency(totalAmount)}`, sub: '실패 주문 총액' },
+  ]
+})
 </script>
 
 <template>
@@ -36,8 +47,8 @@ const rows = [
     >
       <span class="mt-0.5 text-lg">⚠</span>
       <p>
-        결제수단 차단 감지 시 해당 결제수단 확인 후 차단 해제 또는 다른 결제수단으로 결제를 시도해
-        주세요.
+        현재 백엔드에서는 결제 실패 상세 사유, 카드 정보, 설정 한도 값이 내려오지 않아
+        실패 주문 기준으로 목록을 표시합니다.
       </p>
     </div>
 
@@ -53,46 +64,46 @@ const rows = [
       </div>
     </div>
 
-    <div class="mt-6 flex flex-wrap gap-2 border-b border-neutral-200 pb-4">
-      <BaseSelect>
-        <option>마켓</option>
-        <option>전체</option>
-      </BaseSelect>
-      <BaseSelect>
-        <option>최근 7일</option>
-      </BaseSelect>
-      <BaseSelect>
-        <option>실패 유형</option>
-      </BaseSelect>
-      <input
-        type="search"
-        placeholder="로그인 식별자(ID) 검색"
-        class="min-w-[200px] flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
-      />
-    </div>
-
     <div class="mt-6 overflow-x-auto rounded-lg border border-neutral-200 bg-white">
-      <table class="min-w-[800px] w-full text-left text-sm">
+      <table class="min-w-[900px] w-full text-left text-sm">
         <thead class="border-b border-neutral-100 bg-neutral-50 text-xs text-neutral-600">
           <tr>
-            <th class="px-4 py-3 font-medium">No</th>
-            <th class="px-4 py-3 font-medium">발생 일시 / 오류 메시지</th>
-            <th class="px-4 py-3 font-medium">실패 유형</th>
-            <th class="px-4 py-3 font-medium">결제 금액/ 설정 한도</th>
-            <th class="px-4 py-3 font-medium">결제 수단</th>
-            <th class="px-4 py-3 font-medium">관리</th>
+            <th class="px-4 py-3 font-medium">주문번호</th>
+            <th class="px-4 py-3 font-medium">사용자 ID</th>
+            <th class="px-4 py-3 font-medium">고객명</th>
+            <th class="px-4 py-3 font-medium">연락처</th>
+            <th class="px-4 py-3 font-medium">주문 금액</th>
+            <th class="px-4 py-3 font-medium">주문 상태</th>
+            <th class="px-4 py-3 font-medium">자동 주문 상태</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(r, i) in rows" :key="i" class="border-b border-neutral-100">
-            <td class="px-4 py-4">{{ i + 1 }}</td>
-            <td class="max-w-xs px-4 py-4 text-neutral-700">{{ r.when }}</td>
-            <td class="px-4 py-4">{{ r.type }}</td>
-            <td class="px-4 py-4">{{ r.amount }}</td>
-            <td class="px-4 py-4">{{ r.method }}</td>
-            <td class="px-4 py-4">
-              <button type="button" class="text-point hover:underline">상세</button>
+          <tr v-if="loading">
+            <td colspan="7" class="px-4 py-10 text-center text-neutral-500">
+              실패 주문 데이터를 불러오는 중입니다.
             </td>
+          </tr>
+
+          <tr v-else-if="error">
+            <td colspan="7" class="px-4 py-10 text-center text-red-500">
+              {{ error }}
+            </td>
+          </tr>
+
+          <tr v-else-if="rows.length === 0">
+            <td colspan="7" class="px-4 py-10 text-center text-neutral-500">
+              실패 주문이 없습니다.
+            </td>
+          </tr>
+
+          <tr v-for="row in rows" :key="row.id" class="border-b border-neutral-100">
+            <td class="px-4 py-4">#{{ row.id }}</td>
+            <td class="px-4 py-4">{{ row.userId }}</td>
+            <td class="px-4 py-4">{{ row.customerName }}</td>
+            <td class="px-4 py-4">{{ row.customerPhone }}</td>
+            <td class="px-4 py-4">₩{{ currency(row.totalAmount) }}</td>
+            <td class="px-4 py-4">{{ row.status }}</td>
+            <td class="px-4 py-4">{{ row.autoOrderStatus }}</td>
           </tr>
         </tbody>
       </table>
