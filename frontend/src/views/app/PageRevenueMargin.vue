@@ -93,8 +93,12 @@ async function loadData() {
 onMounted(loadData)
 
 // 계산 함수 
+function calcExpectedOrderCount(row) {
+  return (row?.reviewCount ?? 0) / 10
+}
+
 function calcExpectedSales(row) {
-  return (row.reviewCount ?? 0) * (row.salePrice ?? 0)
+  return calcExpectedOrderCount(row) * (row.salePrice ?? 0)
 }
 
 function calcActualSales(row) {
@@ -105,6 +109,11 @@ function calcActualProfit(row) {
   return (row.orderCount ?? 0) * (row.marginPerUnit ?? 0)
 }
 
+function calcExpectedMargin() {
+  if (!selectedRow.value) return expectedData.value?.margin ?? null
+  return (selectedRow.value.marginPerUnit ?? 0) * calcExpectedOrderCount(selectedRow.value)
+}
+
 function calcProfitRateDiff(row) {
   const expected = calcExpectedSales(row)
   const actual = calcActualSales(row)
@@ -113,6 +122,7 @@ function calcProfitRateDiff(row) {
   return diff.toFixed(1)
 }
 
+// 원화 포맷으로 변경 함수
 function formatKrw(value) {
   if (value == null) return '-'
   return `₩${Number(value).toLocaleString('ko-KR')}`
@@ -151,7 +161,7 @@ function closeDetail() {
       <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <p class="text-sm font-medium text-neutral-500">예상 마진</p>
         <div class="mt-1 flex items-baseline gap-2">
-          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(expectedData?.margin) }}</p>
+          <p class="text-3xl font-bold text-neutral-900">{{ formatKrw(calcExpectedMargin()) }}</p>
           <p class="text-sm text-neutral-400">예상 수익률 {{ formatRate(expectedData?.marginRate) }}</p>
         </div>
         <div class="relative mt-6 h-64">
