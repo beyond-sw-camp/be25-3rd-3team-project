@@ -70,15 +70,11 @@ function getProductImage(row) {
   return ''
 }
 
-/**
- * 백엔드 rows를 기존 BaseCheckTable 형식으로 변환
- * 기존 테이블 구조를 유지하기 위해 화면용 데이터로 매핑
- */
 const normalizedRows = computed(() => {
   return props.rows.map((row) => ({
     id: row.orderId,
     market: row.overseasMall || '-',
-    status: row.autoOrderStatusLabel || row.statusLabel || '-',
+    status: row.displayStatusLabel || row.autoOrderStatusLabel || row.statusLabel || '-',
     buyer: `${row.customerName || '-'} ${row.customerPhone || ''}`.trim(),
     buyerName: row.customerName || '-',
     buyerPhone: row.customerPhone || '-',
