@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import BaseSectionTitle from '../../components/common/BaseSectionTitle.vue'
 import {
@@ -18,8 +19,18 @@ const filters = [
   { title: '검색 제한', hint: '시즌당 가져올 상품 수 (1~3, 서버는 최대 10)' },
 ]
 const months = [
-  '1월', '2월', '3월', '4월', '5월', '6월',
-  '7월', '8월', '9월', '10월', '11월', '12월',
+  '1월',
+  '2월',
+  '3월',
+  '4월',
+  '5월',
+  '6월',
+  '7월',
+  '8월',
+  '9월',
+  '10월',
+  '11월',
+  '12월',
 ]
 
 const selectedMonths = ref([])
@@ -28,14 +39,9 @@ const filterChoices = ref(['brand', '1'])
 const marketSizeEok = ref(0)
 
 const info = ref('')
-const {
-  loading,
-  searchElapsed,
-  error,
-  rows,
-  lastMeta,
-  SLOW_THRESHOLD,
-} = useCategorySourcingSession()
+const { loading, searchElapsed, error, rows, lastMeta, SLOW_THRESHOLD } =
+  useCategorySourcingSession()
+const router = useRouter()
 
 const registrationMarketCode = 'COUPANG'
 const loadingMarketPolicy = ref(false)
@@ -47,7 +53,7 @@ const hasDefaultMarginRate = computed(() => {
   return Number.isFinite(marginRate) && marginRate > 0
 })
 
-const tableSaveBlockedMessage = computed(() => {
+const sourceBlockedMessage = computed(() => {
   if (loadingMarketPolicy.value) return '등록 마켓 정책을 확인하는 중입니다.'
   if (!marketPolicyLoaded.value || !hasDefaultMarginRate.value) {
     return '등록 마켓의 기본 마진율 설정이 안되어 있습니다.'
@@ -55,7 +61,7 @@ const tableSaveBlockedMessage = computed(() => {
   return ''
 })
 
-const canSaveTableState = computed(() => tableSaveBlockedMessage.value === '')
+const canSourceProducts = computed(() => sourceBlockedMessage.value === '')
 
 onMounted(loadRegistrationMarketPolicy)
 
@@ -66,7 +72,9 @@ const resultSummary = computed(() => {
   return `${m.at} · 결과 ${m.count}건${elapsed}`
 })
 
-function isMonthSelected(m) { return selectedMonths.value.includes(m) }
+function isMonthSelected(m) {
+  return selectedMonths.value.includes(m)
+}
 
 function toggleMonth(m) {
   const i = selectedMonths.value.indexOf(m)
@@ -117,19 +125,21 @@ async function loadRegistrationMarketPolicy() {
 }
 
 function saveTableState() {
-  if (!canSaveTableState.value) {
-    error.value = tableSaveBlockedMessage.value
-    info.value = ''
-    return
-  }
-
   error.value = ''
   info.value = '표 상태 저장 API는 추후 연동 예정입니다.'
 }
 
+function goToUploadMarketPolicy() {
+  router.push({ name: 'app-upload-markets' })
+}
 
 async function runSearch() {
   info.value = ''
+  if (!canSourceProducts.value) {
+    error.value = sourceBlockedMessage.value
+    return
+  }
+
   if (selectedMonths.value.length === 0) {
     error.value = '계절성으로 쓸 달을 하나 이상 선택하세요.'
     return
@@ -163,33 +173,63 @@ async function runSearch() {
             <!-- 브랜드 유형 -->
             <template v-if="i === 0">
               <label class="flex items-center gap-2 text-sm">
-                <input type="radio" name="f-brand" class="text-point" value="brand"
-                  :checked="filterChoices[0] === 'brand'" @change="setFilterRadio(0, 'brand')" />
+                <input
+                  type="radio"
+                  name="f-brand"
+                  class="text-point"
+                  value="brand"
+                  :checked="filterChoices[0] === 'brand'"
+                  @change="setFilterRadio(0, 'brand')"
+                />
                 브랜드
               </label>
               <label class="flex items-center gap-2 text-sm">
-                <input type="radio" name="f-brand" class="text-point" value="non-brand"
-                  :checked="filterChoices[0] === 'non-brand'" @change="setFilterRadio(0, 'non-brand')" />
+                <input
+                  type="radio"
+                  name="f-brand"
+                  class="text-point"
+                  value="non-brand"
+                  :checked="filterChoices[0] === 'non-brand'"
+                  @change="setFilterRadio(0, 'non-brand')"
+                />
                 미 브랜드
               </label>
             </template>
             <!-- 시장 규모 슬라이더 -->
             <template v-else-if="i === 1">
               <div class="w-full space-y-3 pt-1">
-                <input v-model.number="marketSizeEok" type="range" min="0" max="1000" step="1"
-                  class="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-point" />
+                <input
+                  v-model.number="marketSizeEok"
+                  type="range"
+                  min="0"
+                  max="1000"
+                  step="1"
+                  class="h-2 w-full cursor-pointer appearance-none rounded-full bg-neutral-200 accent-point"
+                />
                 <div class="flex items-center justify-between gap-2 text-xs text-neutral-500">
                   <span>0억</span>
-                  <span class="text-base font-semibold tabular-nums text-point">{{ marketSizeEok }}억</span>
+                  <span class="text-base font-semibold tabular-nums text-point"
+                    >{{ marketSizeEok }}억</span
+                  >
                   <span>1000억</span>
                 </div>
               </div>
             </template>
             <!-- 검색 제한 -->
             <template v-else-if="i === 2">
-              <label v-for="opt in ['1', '2', '3']" :key="opt" class="flex items-center gap-2 text-sm">
-                <input type="radio" :name="`f-${i}`" class="text-point" :value="opt"
-                  :checked="filterChoices[1] === opt" @change="setFilterRadio(i, opt)" />
+              <label
+                v-for="opt in ['1', '2', '3']"
+                :key="opt"
+                class="flex items-center gap-2 text-sm"
+              >
+                <input
+                  type="radio"
+                  :name="`f-${i}`"
+                  class="text-point"
+                  :value="opt"
+                  :checked="filterChoices[1] === opt"
+                  @change="setFilterRadio(i, opt)"
+                />
                 {{ opt }}개
               </label>
             </template>
@@ -197,38 +237,67 @@ async function runSearch() {
         </div>
       </div>
 
-
       <!-- 월 선택 -->
       <div class="mt-6 flex flex-wrap justify-center gap-2">
         <button
-          v-for="m in months" :key="m" type="button"
+          v-for="m in months"
+          :key="m"
+          type="button"
           class="inline-flex items-center gap-2 rounded border px-3 py-1 text-sm transition-colors"
-          :class="isMonthSelected(m)
-            ? 'border-point bg-point/10 text-point'
-            : 'border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50'"
+          :class="
+            isMonthSelected(m)
+              ? 'border-point bg-point/10 text-point'
+              : 'border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50'
+          "
           @click="toggleMonth(m)"
         >
-          <span class="size-2 rounded-full" :class="isMonthSelected(m) ? 'bg-point' : 'bg-point/30'" />
+          <span
+            class="size-2 rounded-full"
+            :class="isMonthSelected(m) ? 'bg-point' : 'bg-point/30'"
+          />
           {{ m }}
         </button>
       </div>
 
       <!-- 액션 버튼 -->
       <div class="mt-4 flex flex-wrap gap-2">
-        <button type="button" :disabled="loading"
+        <button
+          type="button"
+          :disabled="loading || !canSourceProducts"
           class="rounded border border-point bg-point px-4 py-2 text-sm font-medium text-white hover:brightness-95 disabled:opacity-50"
-          @click="runSearch">
+          @click="runSearch"
+        >
           {{ loading ? '검색 중…' : '검색하기' }}
         </button>
-        <button type="button" :disabled="loading"
+        <button
+          type="button"
+          :disabled="loading"
           class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
-          @click="resetFilters">
+          @click="resetFilters"
+        >
           필터 초기화
         </button>
-        <button type="button" :disabled="loading"
+        <button
+          type="button"
+          :disabled="loading"
           class="rounded border border-neutral-300 bg-white px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
-          @click="stubLoadCategory">
+          @click="stubLoadCategory"
+        >
           카테고리 불러오기
+        </button>
+      </div>
+
+      <div
+        v-if="sourceBlockedMessage"
+        class="mt-3 flex flex-wrap items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+      >
+        <span>{{ sourceBlockedMessage }}</span>
+        <button
+          type="button"
+          class="rounded border border-amber-300 bg-white px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100"
+          @click="goToUploadMarketPolicy"
+        >
+          정책 설정으로 이동
         </button>
       </div>
 
@@ -241,7 +310,8 @@ async function runSearch() {
           소싱 진행 중… <span class="font-medium tabular-nums">{{ searchElapsed }}초</span> 경과
         </p>
         <p class="text-xs text-neutral-500">
-          다른 메뉴로 나가도 요청은 브라우저에서 계속 진행됩니다. 다시 이 페이지로 오면 로딩·경과 시간·완료 후 결과가 이어집니다.
+          다른 메뉴로 나가도 요청은 브라우저에서 계속 진행됩니다. 다시 이 페이지로 오면 로딩·경과
+          시간·완료 후 결과가 이어집니다.
         </p>
         <p v-if="searchElapsed >= SLOW_THRESHOLD" class="text-sm text-amber-600">
           상품의 옵션이 많은 경우 소싱하는 데 2~10분 정도 걸릴 수도 있습니다.
@@ -297,15 +367,9 @@ async function runSearch() {
 
       <!-- 하단 버튼 -->
       <div class="mt-4 flex flex-wrap gap-2">
-        <p
-          v-if="tableSaveBlockedMessage"
-          class="w-full rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
-        >
-          {{ tableSaveBlockedMessage }}
-        </p>
         <button
           type="button"
-          :disabled="!canSaveTableState"
+          :disabled="loading"
           class="rounded border border-neutral-300 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
           @click="saveTableState"
         >
@@ -318,7 +382,6 @@ async function runSearch() {
           현재 결과 액셀 저장
         </button>
       </div>
-
     </section>
   </div>
 </template>
@@ -329,7 +392,11 @@ async function runSearch() {
   animation: slide 1.4s ease-in-out infinite;
 }
 @keyframes slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(250%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
 }
 </style>
