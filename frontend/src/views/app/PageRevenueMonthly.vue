@@ -1,9 +1,8 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Chart from 'chart.js/auto'
+import api from '../../api/axios'
 import { getMonthlyRevenue } from '../../api/revenueApi'
-
-const loginUserId = import.meta.env.VITE_DEV_X_USER_ID || 1
 
 const rows = ref([])
 const loading = ref(false)
@@ -32,12 +31,23 @@ function normalizeRows(data) {
   }))
 }
 
+async function resolveMonthlyRevenueUserId() {
+  const devUserId = import.meta.env.VITE_DEV_X_USER_ID
+  if (devUserId != null && String(devUserId).trim() !== '') {
+    return String(devUserId).trim()
+  }
+
+  const response = await api.get('/api/users/me')
+  return response.data?.id
+}
+
 async function fetchData() {
   loading.value = true
   errorMessage.value = ''
 
   try {
-    rows.value = normalizeRows(await getMonthlyRevenue(loginUserId))
+    const userId = await resolveMonthlyRevenueUserId()
+    rows.value = normalizeRows(await getMonthlyRevenue(userId))
     await nextTick()
     renderChart()
   } catch (error) {
